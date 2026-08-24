@@ -419,6 +419,114 @@
     font-weight: 700;
   }
 
+  /* ---- member floating button ---- */
+  .member-fab {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    background: var(--purple-deep);
+    box-shadow: 0 10px 26px rgba(196, 166, 255, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: none;
+    z-index: 200;
+    transition: transform 0.2s;
+  }
+  .member-fab:hover { transform: scale(1.08); }
+  .member-fab .dot-logged-in {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #6FD98B;
+    border: 2.5px solid var(--cream);
+    display: none;
+  }
+  .member-fab.logged-in .dot-logged-in { display: block; }
+
+  /* ---- member modal ---- */
+  .auth-tabs { display: flex; gap: 10px; margin-bottom: 18px; }
+  .auth-tab-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 999px;
+    background: var(--cream);
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    font-family: 'Noto Sans TC';
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+  }
+  .auth-tab-btn.active { background: var(--purple-deep); color: white; }
+  .auth-panel { display: none; }
+  .auth-panel.active { display: flex; flex-direction: column; gap: 12px; }
+  .auth-forgot {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-align: right;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: 'Noto Sans TC';
+  }
+  .auth-msg { font-size: 0.85rem; min-height: 18px; text-align: center; }
+  .auth-msg.error { color: #E0567A; }
+  .auth-msg.success { color: #4C9F6E; }
+
+  .member-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--purple);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .member-profile .m-email { font-size: 0.92rem; font-family: 'Noto Sans TC'; font-weight: 700; word-break: break-all; }
+  .member-profile .btn-logout-mini {
+    background: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
+  .my-order-card {
+    background: var(--white);
+    border: 1.5px solid rgba(139,122,151,0.15);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .my-order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .my-order-date { font-size: 0.78rem; color: var(--ink-soft); }
+  .my-order-status {
+    font-size: 0.76rem;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .my-order-status.processing { background: var(--blue); }
+  .my-order-status.done { background: #D4F0DC; }
+  .my-order-item { font-size: 0.88rem; color: var(--ink); padding: 2px 0; }
+  .my-order-total { text-align: right; font-size: 0.9rem; font-weight: 700; color: var(--pink-deep); margin-top: 6px; }
+
   /* ---- cart drawer ---- */
   .cart-overlay {
     position: fixed;
@@ -545,6 +653,7 @@
 
   @media (max-width: 500px) {
     .cart-fab { bottom: 20px; right: 20px; }
+    .member-fab { bottom: 20px; left: 20px; }
     .toast { right: 20px; left: 20px; text-align: center; }
   }
 
@@ -754,6 +863,7 @@
 <!-- Firebase：連接訂單資料庫 -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCN5mIC4KHO6oCxsl1CxpzGGsGEBEZqVXI",
@@ -766,6 +876,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  const auth = firebase.auth();
 </script>
 
 
@@ -1157,6 +1268,70 @@
     </div>
   </div>
 </footer>
+
+<!-- MEMBER -->
+<button class="member-fab" id="memberFab" aria-label="會員登入">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="8" r="3.6" stroke="#fff" stroke-width="1.8"/>
+    <path d="M5 20C5 16.5 8 14.5 12 14.5C16 14.5 19 16.5 19 20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>
+  <span class="dot-logged-in" id="memberDot"></span>
+</button>
+
+<div class="modal-overlay" id="memberOverlay">
+  <div class="modal-card" style="max-width:420px;">
+    <div class="modal-head">
+      <div>
+        <h3 id="memberModalTitle">會員登入</h3>
+        <p>登入後可以查看你的訂單紀錄</p>
+      </div>
+      <button class="modal-close" id="memberClose" aria-label="關閉">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- 未登入：登入／註冊 -->
+      <div id="authSection">
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="authTabLogin">登入</button>
+          <button class="auth-tab-btn" id="authTabSignup">註冊新帳號</button>
+        </div>
+
+        <div class="auth-panel active" id="authPanelLogin">
+          <div class="form-group">
+            <input type="email" id="loginEmailInput" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <input type="password" id="loginPasswordInput" placeholder="密碼">
+          </div>
+          <button class="auth-forgot" id="forgotPwBtn">忘記密碼？</button>
+          <button class="btn btn-primary" id="doLoginBtn">登入</button>
+          <div class="auth-msg" id="loginMsg"></div>
+        </div>
+
+        <div class="auth-panel" id="authPanelSignup">
+          <div class="form-group">
+            <input type="email" id="signupEmailInput" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <input type="password" id="signupPasswordInput" placeholder="設定密碼（至少 6 碼）">
+          </div>
+          <button class="btn btn-primary" id="doSignupBtn">建立帳號</button>
+          <div class="auth-msg" id="signupMsg"></div>
+        </div>
+      </div>
+
+      <!-- 已登入：會員資料＋我的訂單 -->
+      <div id="myOrdersSection" style="display:none;">
+        <div class="member-profile">
+          <span class="m-email" id="memberEmailDisplay"></span>
+          <button class="btn-logout-mini" id="doLogoutBtn">登出</button>
+        </div>
+        <h4 style="margin-bottom:12px;">我的訂單</h4>
+        <div id="myOrdersList"><div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- CART -->
 <button class="cart-fab" id="cartFab" aria-label="購物車">
@@ -1568,6 +1743,7 @@
       address: document.getElementById('custAddress').value.trim(),
       note: document.getElementById('custNote').value.trim(),
       status: '未處理',
+      uid: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : null,
       createdAt: firebase.database.ServerValue.TIMESTAMP
     };
 
@@ -1613,7 +1789,175 @@
 </script>
 
 <script>
-  /* ============ 錨點導覽：手動控制捲動，避免被固定導覽列擋住 ============ */
+  /* ============ 會員登入／註冊／我的訂單 ============ */
+
+  const memberFab = document.getElementById('memberFab');
+  const memberDot = document.getElementById('memberDot');
+  const memberOverlay = document.getElementById('memberOverlay');
+  const memberClose = document.getElementById('memberClose');
+  const memberModalTitle = document.getElementById('memberModalTitle');
+
+  const authSection = document.getElementById('authSection');
+  const myOrdersSection = document.getElementById('myOrdersSection');
+  const memberEmailDisplay = document.getElementById('memberEmailDisplay');
+  const myOrdersList = document.getElementById('myOrdersList');
+
+  const authTabLogin = document.getElementById('authTabLogin');
+  const authTabSignup = document.getElementById('authTabSignup');
+  const authPanelLogin = document.getElementById('authPanelLogin');
+  const authPanelSignup = document.getElementById('authPanelSignup');
+
+  let currentUser = null;
+
+  function openMemberModal() { memberOverlay.classList.add('open'); }
+  function closeMemberModal() { memberOverlay.classList.remove('open'); }
+
+  memberFab.addEventListener('click', openMemberModal);
+  memberClose.addEventListener('click', closeMemberModal);
+  memberOverlay.addEventListener('click', (e) => { if (e.target === memberOverlay) closeMemberModal(); });
+
+  authTabLogin.addEventListener('click', () => {
+    authTabLogin.classList.add('active'); authTabSignup.classList.remove('active');
+    authPanelLogin.classList.add('active'); authPanelSignup.classList.remove('active');
+  });
+  authTabSignup.addEventListener('click', () => {
+    authTabSignup.classList.add('active'); authTabLogin.classList.remove('active');
+    authPanelSignup.classList.add('active'); authPanelLogin.classList.remove('active');
+  });
+
+  /* ---- 登入 ---- */
+  document.getElementById('doLoginBtn').addEventListener('click', () => {
+    const email = document.getElementById('loginEmailInput').value.trim();
+    const password = document.getElementById('loginPasswordInput').value;
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = ''; msg.className = 'auth-msg';
+
+    if (!email || !password) {
+      msg.textContent = '請輸入 Email 與密碼';
+      msg.classList.add('error');
+      return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => { closeMemberModal(); })
+      .catch(() => {
+        msg.textContent = '登入失敗，請確認 Email 或密碼是否正確';
+        msg.classList.add('error');
+      });
+  });
+
+  /* ---- 註冊 ---- */
+  document.getElementById('doSignupBtn').addEventListener('click', () => {
+    const email = document.getElementById('signupEmailInput').value.trim();
+    const password = document.getElementById('signupPasswordInput').value;
+    const msg = document.getElementById('signupMsg');
+    msg.textContent = ''; msg.className = 'auth-msg';
+
+    if (!email || !password) {
+      msg.textContent = '請輸入 Email 與密碼';
+      msg.classList.add('error');
+      return;
+    }
+    if (password.length < 6) {
+      msg.textContent = '密碼至少要 6 碼';
+      msg.classList.add('error');
+      return;
+    }
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => { closeMemberModal(); })
+      .catch(err => {
+        msg.textContent = err.code === 'auth/email-already-in-use'
+          ? '這個 Email 已經註冊過了，請直接登入'
+          : '註冊失敗，請確認資訊是否正確';
+        msg.classList.add('error');
+      });
+  });
+
+  /* ---- 忘記密碼 ---- */
+  document.getElementById('forgotPwBtn').addEventListener('click', () => {
+    const email = document.getElementById('loginEmailInput').value.trim();
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = ''; msg.className = 'auth-msg';
+
+    if (!email) {
+      msg.textContent = '請先在上方輸入你的 Email';
+      msg.classList.add('error');
+      return;
+    }
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        msg.textContent = '重設密碼信已寄出，請去信箱查看';
+        msg.classList.add('success');
+      })
+      .catch(() => {
+        msg.textContent = '寄送失敗，請確認 Email 是否正確';
+        msg.classList.add('error');
+      });
+  });
+
+  /* ---- 登出 ---- */
+  document.getElementById('doLogoutBtn').addEventListener('click', () => auth.signOut());
+
+  /* ---- 登入狀態變化 ---- */
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+    if (user) {
+      memberFab.classList.add('logged-in');
+      memberModalTitle.textContent = '我的會員';
+      authSection.style.display = 'none';
+      myOrdersSection.style.display = 'block';
+      memberEmailDisplay.textContent = user.email;
+      loadMyOrders(user.uid);
+    } else {
+      memberFab.classList.remove('logged-in');
+      memberModalTitle.textContent = '會員登入';
+      authSection.style.display = 'block';
+      myOrdersSection.style.display = 'none';
+    }
+  });
+
+  function myOrderFormatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  }
+
+  function loadMyOrders(uid) {
+    db.ref('orders').orderByChild('uid').equalTo(uid).once('value')
+      .then(snapshot => {
+        const data = snapshot.val() || {};
+        const keys = Object.keys(data).reverse();
+
+        if (keys.length === 0) {
+          myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div>';
+          return;
+        }
+
+        myOrdersList.innerHTML = keys.map(key => {
+          const o = data[key];
+          const statusClass = o.status === '已完成' ? 'done' : (o.status === '處理中' || o.status === '已聯絡' ? 'processing' : '');
+          const itemsHtml = (o.items || []).map(item =>
+            `<div class="my-order-item">${item.name} × ${item.qty}</div>`
+          ).join('');
+
+          return `
+            <div class="my-order-card">
+              <div class="my-order-top">
+                <span class="my-order-date">${myOrderFormatTime(o.createdAt)}</span>
+                <span class="my-order-status ${statusClass}">${o.status || '未處理'}</span>
+              </div>
+              ${itemsHtml}
+              <div class="my-order-total">${formatMoney(o.subtotal || 0)}</div>
+            </div>
+          `;
+        }).join('');
+      })
+      .catch(() => {
+        myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">讀取訂單時發生問題，請稍後再試</div>';
+      });
+  }
+</script>
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href').slice(1);
