@@ -30,6 +30,10 @@
 
   html { scroll-behavior: smooth; }
 
+  #top, #paths, #categories, #steps, #contact {
+    scroll-margin-top: 100px;
+  }
+
   body {
     font-family: 'Noto Sans TC', sans-serif;
     background: var(--cream);
@@ -337,6 +341,311 @@
     color: var(--purple-deep);
     background: rgba(196, 166, 255, 0.2);
   }
+
+  /* ---- product price / qty / add to cart ---- */
+  .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    margin-bottom: 14px;
+  }
+  .price-row .price {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--pink-deep);
+    font-family: 'Noto Sans TC';
+  }
+  .qty-stepper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--cream);
+    border-radius: 999px;
+    padding: 4px 6px;
+  }
+  .qty-btn {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .qty-num { font-size: 0.92rem; min-width: 14px; text-align: center; font-family: 'Noto Sans TC'; }
+
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 0.95rem;
+    padding: 11px 20px;
+  }
+  .btn-add:hover { background: var(--pink-deep); }
+  .btn-add.added { background: var(--blue-deep); }
+
+  /* ---- floating cart button ---- */
+  .cart-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    background: var(--pink-deep);
+    box-shadow: 0 10px 26px rgba(255, 158, 184, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: none;
+    z-index: 200;
+    transition: transform 0.2s;
+  }
+  .cart-fab:hover { transform: scale(1.08); }
+  .cart-count {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 0.72rem;
+    min-width: 20px; height: 20px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+    font-family: 'Noto Sans TC';
+    font-weight: 700;
+  }
+
+  /* ---- cart drawer ---- */
+  .cart-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(91, 75, 106, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .cart-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .cart-drawer {
+    position: fixed;
+    top: 0; right: 0;
+    height: 100%;
+    width: 420px;
+    max-width: 92vw;
+    background: var(--cream);
+    z-index: 301;
+    box-shadow: -12px 0 40px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.35s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .cart-drawer.open { transform: translateX(0); }
+
+  .cart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 26px;
+    border-bottom: 2px solid rgba(227,212,255,0.5);
+  }
+  .cart-head h3 { font-size: 1.4rem; color: var(--ink); }
+  .cart-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.4rem; color: var(--ink-soft); line-height: 1;
+    width: 32px; height: 32px; border-radius: 50%;
+  }
+  .cart-close:hover { background: var(--pink); }
+
+  .cart-body { flex: 1; overflow-y: auto; padding: 20px 26px; }
+
+  .cart-empty { text-align: center; color: var(--ink-soft); padding: 60px 10px; font-size: 0.95rem; }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(139,122,151,0.15);
+  }
+  .cart-item-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: var(--pink);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.4rem;
+  }
+  .cart-item-info { flex: 1; min-width: 0; }
+  .cart-item-name { font-size: 0.98rem; font-weight: 700; font-family: 'Noto Sans TC'; margin-bottom: 4px; }
+  .cart-item-price { font-size: 0.85rem; color: var(--ink-soft); }
+  .cart-item-actions { display: flex; align-items: center; gap: 8px; }
+  .cart-item-remove {
+    background: none; border: none; color: var(--ink-soft);
+    cursor: pointer; font-size: 0.8rem; text-decoration: underline;
+    margin-left: 6px;
+  }
+  .cart-item-remove:hover { color: var(--pink-deep); }
+
+  .cart-foot {
+    padding: 22px 26px 26px;
+    border-top: 2px solid rgba(227,212,255,0.5);
+  }
+  .cart-subtotal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    font-family: 'Noto Sans TC';
+  }
+  .cart-subtotal .amt { color: var(--pink-deep); }
+
+  .checkout-fields { display: none; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .checkout-fields.open { display: flex; }
+  .checkout-fields input, .checkout-fields textarea {
+    font-family: 'Noto Sans TC';
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    background: var(--white);
+    font-size: 0.9rem;
+    resize: none;
+  }
+  .checkout-fields input:focus, .checkout-fields textarea:focus {
+    outline: none;
+    border-color: var(--pink-deep);
+  }
+
+  .cart-actions { display: flex; flex-direction: column; gap: 10px; }
+  .cart-actions .btn { width: 100%; justify-content: center; }
+
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    right: 28px;
+    background: var(--ink);
+    color: var(--white);
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    z-index: 400;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 500px) {
+    .cart-fab { bottom: 20px; right: 20px; }
+    .toast { right: 20px; left: 20px; text-align: center; }
+  }
+
+  /* ---- custom order modal ---- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(91, 75, 106, 0.4);
+    backdrop-filter: blur(3px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .modal-card {
+    background: var(--cream);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 560px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s;
+  }
+  .modal-overlay.open .modal-card { transform: translateY(0) scale(1); }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px;
+    border-bottom: 2px solid rgba(227,212,255,0.6);
+  }
+  .modal-head h3 { font-size: 1.4rem; color: var(--ink); }
+  .modal-head p { font-size: 0.85rem; color: var(--ink-soft); margin-top: 4px; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.4rem; color: var(--ink-soft); line-height: 1;
+    width: 32px; height: 32px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--pink); }
+
+  .modal-body {
+    padding: 24px 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-family: 'Noto Sans TC';
+  }
+  .form-group .hint { font-size: 0.78rem; color: var(--ink-soft); font-weight: 400; margin-top: -2px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-family: 'Noto Sans TC';
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    background: var(--white);
+    font-size: 0.9rem;
+    resize: none;
+    width: 100%;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--pink-deep);
+  }
+
+  .modal-foot {
+    padding: 20px 28px 26px;
+    border-top: 2px solid rgba(227,212,255,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .modal-foot .btn { width: 100%; justify-content: center; }
+
+  @media (max-width: 500px) {
+    .form-row { grid-template-columns: 1fr; }
+    .modal-body, .modal-head, .modal-foot { padding-left: 20px; padding-right: 20px; }
+  }
   .cat-card span.soon {
     display: inline-block;
     margin-top: 10px;
@@ -441,6 +750,24 @@
 </style>
 </head>
 <body>
+
+<!-- Firebase：連接訂單資料庫 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCN5mIC4KHO6oCxsl1CxpzGGsGEBEZqVXI",
+    authDomain: "obv1rei-shop.firebaseapp.com",
+    databaseURL: "https://obv1rei-shop-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "obv1rei-shop",
+    storageBucket: "obv1rei-shop.firebasestorage.app",
+    messagingSenderId: "555143372361",
+    appId: "1:555143372361:web:55be224e2aca2af076a998"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+
 
 <header>
   <nav class="wrap">
@@ -560,7 +887,7 @@
       </div>
 
       <div class="cat-grid">
-        <div class="cat-card reveal">
+        <div class="cat-card reveal" data-product>
           <div class="cat-icon-wrap">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="11" r="7" fill="#FF9EB8"/>
@@ -573,10 +900,30 @@
           </div>
           <h4>卡通公仔</h4>
           <p class="cat-desc">喜歡的卡通角色，做成桌上的小公仔</p>
-          <span class="soon">即將上架</span>
+          <div class="form-group" style="margin-bottom:14px;">
+            <select class="item-select" id="sel-cartoon" data-other="other-cartoon">
+              <option value="">請選擇角色款式</option>
+              <option value="三麗鷗">三麗鷗</option>
+              <option value="哆啦A夢">哆啦A夢</option>
+              <option value="蠟筆小新">蠟筆小新</option>
+              <option value="吉伊卡哇">吉伊卡哇</option>
+              <option value="小小兵">小小兵</option>
+              <option value="其他">其他（自行輸入）</option>
+            </select>
+            <input type="text" class="item-other" id="other-cartoon" placeholder="請輸入想要的角色" style="display:none;margin-top:8px;">
+          </div>
+          <div class="price-row">
+            <span class="price">NT$450</span>
+            <div class="qty-stepper" data-qty="1">
+              <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+            </div>
+          </div>
+          <button class="btn btn-add" data-id="cartoon" data-name="卡通公仔" data-price="450" data-select="sel-cartoon">加入購物車</button>
         </div>
 
-        <div class="cat-card reveal">
+        <div class="cat-card reveal" data-product>
           <div class="cat-icon-wrap">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="6" r="3" stroke="#5B4B6A" stroke-width="1.8" fill="none"/>
@@ -584,12 +931,32 @@
               <path d="M12 12C12 12 6 13 6 18C6 20.5 8.5 21 12 21C15.5 21 18 20.5 18 18C18 13 12 12 12 12Z" fill="#8FC4FF"/>
             </svg>
           </div>
-          <h4>可愛吊飾</h4>
+          <h4>吊飾</h4>
           <p class="cat-desc">包包、鑰匙圈上的小裝飾，療癒又好看</p>
-          <span class="soon">即將上架</span>
+          <div class="form-group" style="margin-bottom:14px;">
+            <select class="item-select" id="sel-charm" data-other="other-charm">
+              <option value="">請選擇款式</option>
+              <option value="愛心吊飾">愛心吊飾</option>
+              <option value="星星吊飾">星星吊飾</option>
+              <option value="英文字母／名字吊飾">英文字母／名字吊飾</option>
+              <option value="動物造型吊飾">動物造型吊飾</option>
+              <option value="花朵吊飾">花朵吊飾</option>
+              <option value="其他">其他（自行輸入）</option>
+            </select>
+            <input type="text" class="item-other" id="other-charm" placeholder="請輸入想要的款式" style="display:none;margin-top:8px;">
+          </div>
+          <div class="price-row">
+            <span class="price">NT$220</span>
+            <div class="qty-stepper" data-qty="1">
+              <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+            </div>
+          </div>
+          <button class="btn btn-add" data-id="charm" data-name="吊飾" data-price="220" data-select="sel-charm">加入購物車</button>
         </div>
 
-        <div class="cat-card reveal">
+        <div class="cat-card reveal" data-product>
           <div class="cat-icon-wrap">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="7" fill="#FFDD6B"/>
@@ -602,10 +969,29 @@
           </div>
           <h4>動物公仔</h4>
           <p class="cat-desc">貓咪、兔子、熊熊⋯各種可愛動物造型</p>
-          <span class="soon">即將上架</span>
+          <div class="form-group" style="margin-bottom:14px;">
+            <select class="item-select" id="sel-animal" data-other="other-animal">
+              <option value="">請選擇動物款式</option>
+              <option value="貓咪">貓咪</option>
+              <option value="狗狗">狗狗</option>
+              <option value="兔子">兔子</option>
+              <option value="熊熊">熊熊</option>
+              <option value="其他">其他（自行輸入）</option>
+            </select>
+            <input type="text" class="item-other" id="other-animal" placeholder="請輸入想要的動物" style="display:none;margin-top:8px;">
+          </div>
+          <div class="price-row">
+            <span class="price">NT$480</span>
+            <div class="qty-stepper" data-qty="1">
+              <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+            </div>
+          </div>
+          <button class="btn btn-add" data-id="animal" data-name="動物公仔" data-price="480" data-select="sel-animal">加入購物車</button>
         </div>
 
-        <div class="cat-card reveal">
+        <div class="cat-card reveal" data-product>
           <div class="cat-icon-wrap">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
               <path d="M5 11L12 5L19 11V19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V11Z" fill="#E3D4FF"/>
@@ -615,10 +1001,29 @@
           </div>
           <h4>日常生活用品</h4>
           <p class="cat-desc">收納盒、掛勾、置物架，讓生活更方便</p>
-          <span class="soon">即將上架</span>
+          <div class="form-group" style="margin-bottom:14px;">
+            <select class="item-select" id="sel-daily" data-other="other-daily">
+              <option value="">請選擇款式</option>
+              <option value="筷子架">筷子架</option>
+              <option value="書架">書架</option>
+              <option value="收納盒">收納盒</option>
+              <option value="筆筒">筆筒</option>
+              <option value="其他">其他（自行輸入）</option>
+            </select>
+            <input type="text" class="item-other" id="other-daily" placeholder="請輸入想要的用品" style="display:none;margin-top:8px;">
+          </div>
+          <div class="price-row">
+            <span class="price">NT$350</span>
+            <div class="qty-stepper" data-qty="1">
+              <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+            </div>
+          </div>
+          <button class="btn btn-add" data-id="daily" data-name="日常生活用品" data-price="350" data-select="sel-daily">加入購物車</button>
         </div>
 
-        <div class="cat-card reveal">
+        <div class="cat-card reveal" data-product>
           <div class="cat-icon-wrap">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
               <path d="M12 3L20 7.5V16.5L12 21L4 16.5V7.5L12 3Z" fill="#FF9EB8"/>
@@ -628,7 +1033,27 @@
           </div>
           <h4>玩具</h4>
           <p class="cat-desc">好玩又好看的小玩具，送禮自用都適合</p>
-          <span class="soon">即將上架</span>
+          <div class="form-group" style="margin-bottom:14px;">
+            <select class="item-select" id="sel-toy" data-other="other-toy">
+              <option value="">請選擇款式</option>
+              <option value="陀螺">陀螺</option>
+              <option value="迷你積木">迷你積木</option>
+              <option value="彈跳玩具">彈跳玩具</option>
+              <option value="扭蛋公仔">扭蛋公仔</option>
+              <option value="益智拼圖">益智拼圖</option>
+              <option value="其他">其他（自行輸入）</option>
+            </select>
+            <input type="text" class="item-other" id="other-toy" placeholder="請輸入想要的玩具" style="display:none;margin-top:8px;">
+          </div>
+          <div class="price-row">
+            <span class="price">NT$280</span>
+            <div class="qty-stepper" data-qty="1">
+              <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+            </div>
+          </div>
+          <button class="btn btn-add" data-id="toy" data-name="玩具" data-price="280" data-select="sel-toy">加入購物車</button>
         </div>
 
         <div class="cat-card reveal">
@@ -641,7 +1066,8 @@
           </div>
           <h4>客製 3D 公仔</h4>
           <p class="cat-desc">提供照片或想法，幫你做成專屬公仔</p>
-          <span class="soon soon-custom">開放詢價</span>
+          <span class="soon soon-custom" style="display:inline-block;margin-bottom:10px;">開放客製</span>
+          <button class="btn btn-outline btn-sm" id="openCustomForm">免費詢價</button>
         </div>
       </div>
     </div>
@@ -732,6 +1158,148 @@
   </div>
 </footer>
 
+<!-- CART -->
+<button class="cart-fab" id="cartFab" aria-label="購物車">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+    <path d="M4 5H6L7.5 15.5C7.6 16.3 8.3 17 9.1 17H18C18.8 17 19.5 16.3 19.6 15.5L21 8H6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="9.5" cy="20" r="1.4" fill="#fff"/>
+    <circle cx="17.5" cy="20" r="1.4" fill="#fff"/>
+  </svg>
+  <span class="cart-count" id="cartCount">0</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>購物車</h3>
+    <button class="cart-close" id="cartClose" aria-label="關閉">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty">購物車還是空的，去挑幾樣喜歡的小物吧！</div>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-subtotal">
+      <span>小計</span>
+      <span class="amt" id="cartSubtotal">NT$0</span>
+    </div>
+
+    <div class="checkout-fields" id="checkoutFields">
+      <input type="text" id="custName" placeholder="收件人姓名">
+      <input type="text" id="custContact" placeholder="聯絡電話 / LINE ID">
+      <input type="text" id="custAddress" placeholder="寄送地址（或留空自取）">
+      <textarea id="custNote" rows="2" placeholder="備註（例如顏色、客製需求）"></textarea>
+    </div>
+
+    <div class="cart-actions">
+      <button class="btn btn-primary" id="checkoutBtn">前往結帳</button>
+      <button class="btn btn-primary" id="sendOrderBtn" style="display:none;">送出訂單</button>
+      <button class="btn btn-outline btn-sm" id="copyOrderBtn" style="display:none;">複製訂單內容</button>
+    </div>
+  </div>
+</aside>
+
+<div class="toast" id="toast">已加入購物車！</div>
+
+<!-- CUSTOM 3D FIGURE INQUIRY MODAL -->
+<div class="modal-overlay" id="customOverlay">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h3>客製 3D 公仔詢價</h3>
+        <p>填寫你的需求，我們會盡快回覆報價</p>
+      </div>
+      <button class="modal-close" id="customClose" aria-label="關閉">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-name">姓名 / 稱呼</label>
+          <input type="text" id="cf-name" placeholder="怎麼稱呼你">
+        </div>
+        <div class="form-group">
+          <label for="cf-contact">聯絡方式</label>
+          <input type="text" id="cf-contact" placeholder="LINE ID 或電話">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="cf-email">Email</label>
+        <input type="email" id="cf-email" placeholder="用來收報價單與成品照片">
+      </div>
+
+      <div class="form-group">
+        <label for="cf-desc">想印的東西是什麼？</label>
+        <span class="hint">描述外觀、特徵、姿勢等，越詳細越好</span>
+        <textarea id="cf-desc" rows="3" placeholder="例如：想做一隻戴著帽子、比 YA 的柴犬公仔"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="cf-refimg">參考圖片連結（選填）</label>
+        <span class="hint">LINE 相簿、Google 相簿等連結；若沒有連結，送出後也可以直接把圖片附加在信件裡</span>
+        <input type="text" id="cf-refimg" placeholder="貼上圖片連結，或留空">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-size">尺寸大小</label>
+          <select id="cf-size">
+            <option value="">請選擇</option>
+            <option value="小型（掌心 5-8cm）">小型（掌心 5-8cm）</option>
+            <option value="中型（桌上擺飾 10-15cm）">中型（桌上擺飾 10-15cm）</option>
+            <option value="大型（20cm 以上）">大型（20cm 以上）</option>
+            <option value="不確定，請幫我建議">不確定，請幫我建議</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cf-color">顏色需求</label>
+          <input type="text" id="cf-color" placeholder="例如：依參考圖配色">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-base">底座 / 刻字</label>
+          <select id="cf-base">
+            <option value="不需要">不需要</option>
+            <option value="需要底座（不刻字）">需要底座（不刻字）</option>
+            <option value="需要底座＋刻字">需要底座＋刻字</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cf-purpose">用途</label>
+          <select id="cf-purpose">
+            <option value="自用收藏">自用收藏</option>
+            <option value="送禮">送禮</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-deadline">希望完成時間（選填）</label>
+          <input type="text" id="cf-deadline" placeholder="例如：兩週內、不趕">
+        </div>
+        <div class="form-group">
+          <label for="cf-budget">預算範圍（選填）</label>
+          <input type="text" id="cf-budget" placeholder="例如：NT$500 上下">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="cf-note">其他備註（選填）</label>
+        <textarea id="cf-note" rows="2" placeholder="還有什麼想讓我們知道的嗎？"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="cfSendBtn">送出需求</button>
+      <button class="btn btn-outline btn-sm" id="cfCopyBtn">複製內容（可貼到 LINE）</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const items = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries) => {
@@ -743,6 +1311,433 @@
     });
   }, { threshold: 0.15 });
   items.forEach(i => io.observe(i));
+</script>
+
+<script>
+  /* ============ 購物車功能（純前端自製，無第三方服務） ============ */
+
+  const ICONS = {
+    cartoon: '🧸', charm: '🔔', animal: '🐰', daily: '🧺', toy: '🪀'
+  };
+
+  let cart = {}; // { id: { name, price, qty } }
+
+  const cartFab = document.getElementById('cartFab');
+  const cartCount = document.getElementById('cartCount');
+  const cartOverlay = document.getElementById('cartOverlay');
+  const cartDrawer = document.getElementById('cartDrawer');
+  const cartClose = document.getElementById('cartClose');
+  const cartBody = document.getElementById('cartBody');
+  const cartSubtotal = document.getElementById('cartSubtotal');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const checkoutFields = document.getElementById('checkoutFields');
+  const sendOrderBtn = document.getElementById('sendOrderBtn');
+  const copyOrderBtn = document.getElementById('copyOrderBtn');
+  const toast = document.getElementById('toast');
+
+  const SHOP_EMAIL = 'hello@example.com'; // TODO：改成你自己的收件信箱
+
+  function formatMoney(n) {
+    return 'NT$' + n.toLocaleString();
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function openCart() {
+    cartOverlay.classList.add('open');
+    cartDrawer.classList.add('open');
+  }
+  function closeCart() {
+    cartOverlay.classList.remove('open');
+    cartDrawer.classList.remove('open');
+  }
+
+  cartFab.addEventListener('click', openCart);
+  cartOverlay.addEventListener('click', closeCart);
+  cartClose.addEventListener('click', closeCart);
+
+  /* ---- 商品卡片：款式選單（選「其他」時顯示輸入框） ---- */
+  document.querySelectorAll('.item-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const otherInput = document.getElementById(sel.dataset.other);
+      if (sel.value === '其他') {
+        otherInput.style.display = 'block';
+      } else {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+      }
+    });
+  });
+
+  /* ---- 商品卡片：數量調整 ---- */
+  document.querySelectorAll('[data-product]').forEach(card => {
+    const stepper = card.querySelector('.qty-stepper');
+    const qtyNum = stepper.querySelector('.qty-num');
+    let qty = 1;
+
+    stepper.querySelector('.qty-minus').addEventListener('click', () => {
+      qty = Math.max(1, qty - 1);
+      qtyNum.textContent = qty;
+    });
+    stepper.querySelector('.qty-plus').addEventListener('click', () => {
+      qty = Math.min(99, qty + 1);
+      qtyNum.textContent = qty;
+    });
+
+    const addBtn = card.querySelector('.btn-add');
+    addBtn.addEventListener('click', () => {
+      const baseId = addBtn.dataset.id;
+      const baseName = addBtn.dataset.name;
+      const price = parseInt(addBtn.dataset.price, 10);
+
+      let styleName = '';
+      const selectId = addBtn.dataset.select;
+      if (selectId) {
+        const sel = document.getElementById(selectId);
+        const selVal = sel.value;
+        if (!selVal) {
+          showToast('請先選擇款式');
+          return;
+        }
+        if (selVal === '其他') {
+          const otherInput = document.getElementById(sel.dataset.other);
+          const customVal = otherInput.value.trim();
+          if (!customVal) {
+            showToast('請輸入想要的款式');
+            return;
+          }
+          styleName = customVal;
+        } else {
+          styleName = selVal;
+        }
+      }
+
+      const fullName = styleName ? `${baseName}－${styleName}` : baseName;
+      const cartId = styleName ? `${baseId}__${styleName}` : baseId;
+
+      addToCart(cartId, fullName, price, qty, baseId);
+
+      qty = 1;
+      qtyNum.textContent = qty;
+
+      addBtn.textContent = '已加入 ✓';
+      addBtn.classList.add('added');
+      setTimeout(() => {
+        addBtn.textContent = '加入購物車';
+        addBtn.classList.remove('added');
+      }, 1000);
+
+      showToast(`已加入「${fullName}」到購物車`);
+    });
+  });
+
+  function addToCart(id, name, price, qty, iconKey) {
+    if (cart[id]) {
+      cart[id].qty = Math.min(99, cart[id].qty + qty);
+    } else {
+      cart[id] = { name, price, qty, iconKey };
+    }
+    renderCart();
+  }
+
+  function changeCartQty(id, delta) {
+    if (!cart[id]) return;
+    cart[id].qty += delta;
+    if (cart[id].qty <= 0) delete cart[id];
+    renderCart();
+  }
+
+  function removeFromCart(id) {
+    delete cart[id];
+    renderCart();
+  }
+
+  function renderCart() {
+    const ids = Object.keys(cart);
+    const totalCount = ids.reduce((sum, id) => sum + cart[id].qty, 0);
+    cartCount.textContent = totalCount;
+
+    if (ids.length === 0) {
+      cartBody.innerHTML = '<div class="cart-empty">購物車還是空的，去挑幾樣喜歡的小物吧！</div>';
+      cartSubtotal.textContent = formatMoney(0);
+      checkoutBtn.disabled = true;
+      checkoutBtn.style.opacity = '0.5';
+      checkoutFields.classList.remove('open');
+      sendOrderBtn.style.display = 'none';
+      copyOrderBtn.style.display = 'none';
+      checkoutBtn.textContent = '前往結帳';
+      return;
+    }
+
+    checkoutBtn.disabled = false;
+    checkoutBtn.style.opacity = '1';
+
+    let subtotal = 0;
+    cartBody.innerHTML = ids.map(id => {
+      const item = cart[id];
+      const lineTotal = item.price * item.qty;
+      subtotal += lineTotal;
+      return `
+        <div class="cart-item">
+          <div class="cart-item-icon">${ICONS[item.iconKey] || '🎁'}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">${formatMoney(item.price)} × ${item.qty} = ${formatMoney(lineTotal)}</div>
+          </div>
+          <div class="cart-item-actions">
+            <div class="qty-stepper">
+              <button class="qty-btn" onclick="changeCartQty('${id}', -1)" aria-label="減少數量">−</button>
+              <span class="qty-num">${item.qty}</span>
+              <button class="qty-btn" onclick="changeCartQty('${id}', 1)" aria-label="增加數量">+</button>
+            </div>
+            <button class="cart-item-remove" onclick="removeFromCart('${id}')">移除</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    cartSubtotal.textContent = formatMoney(subtotal);
+  }
+
+  /* 讓 inline onclick 找得到函式 */
+  window.changeCartQty = changeCartQty;
+  window.removeFromCart = removeFromCart;
+
+  /* ---- 結帳流程 ---- */
+  checkoutBtn.addEventListener('click', () => {
+    const isOpen = checkoutFields.classList.toggle('open');
+    if (isOpen) {
+      checkoutBtn.textContent = '收合表單';
+      sendOrderBtn.style.display = 'flex';
+      copyOrderBtn.style.display = 'flex';
+    } else {
+      checkoutBtn.textContent = '前往結帳';
+      sendOrderBtn.style.display = 'none';
+      copyOrderBtn.style.display = 'none';
+    }
+  });
+
+  function buildOrderText() {
+    const name = document.getElementById('custName').value.trim();
+    const contact = document.getElementById('custContact').value.trim();
+    const address = document.getElementById('custAddress').value.trim();
+    const note = document.getElementById('custNote').value.trim();
+
+    let lines = ['【我の購物網站 訂單】', ''];
+    Object.values(cart).forEach(item => {
+      lines.push(`・${item.name} × ${item.qty}　${formatMoney(item.price * item.qty)}`);
+    });
+    const subtotal = Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
+    lines.push('', `小計：${formatMoney(subtotal)}`, '');
+    lines.push(`收件人：${name || '（未填寫）'}`);
+    lines.push(`聯絡方式：${contact || '（未填寫）'}`);
+    lines.push(`寄送地址：${address || '（自取 / 未填寫）'}`);
+    if (note) lines.push(`備註：${note}`);
+
+    return lines.join('\n');
+  }
+
+  function validateCustomerInfo() {
+    const name = document.getElementById('custName').value.trim();
+    const contact = document.getElementById('custContact').value.trim();
+    if (!name || !contact) {
+      showToast('請至少填寫姓名與聯絡方式');
+      return false;
+    }
+    return true;
+  }
+
+  sendOrderBtn.addEventListener('click', () => {
+    if (!validateCustomerInfo()) return;
+
+    const items = Object.values(cart).map(item => ({
+      name: item.name, price: item.price, qty: item.qty
+    }));
+    const subtotal = Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
+
+    const orderData = {
+      items,
+      subtotal,
+      name: document.getElementById('custName').value.trim(),
+      contact: document.getElementById('custContact').value.trim(),
+      address: document.getElementById('custAddress').value.trim(),
+      note: document.getElementById('custNote').value.trim(),
+      status: '未處理',
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    sendOrderBtn.disabled = true;
+    sendOrderBtn.textContent = '送出中...';
+
+    db.ref('orders').push(orderData)
+      .then(() => {
+        showToast('訂單已送出，我們會盡快與你聯絡！');
+        cart = {};
+        document.getElementById('custName').value = '';
+        document.getElementById('custContact').value = '';
+        document.getElementById('custAddress').value = '';
+        document.getElementById('custNote').value = '';
+        checkoutFields.classList.remove('open');
+        checkoutBtn.textContent = '前往結帳';
+        sendOrderBtn.style.display = 'none';
+        copyOrderBtn.style.display = 'none';
+        renderCart();
+        closeCart();
+      })
+      .catch(() => {
+        showToast('送出失敗，請改用下方「複製訂單內容」傳給我們');
+      })
+      .finally(() => {
+        sendOrderBtn.disabled = false;
+        sendOrderBtn.textContent = '送出訂單';
+      });
+  });
+
+  copyOrderBtn.addEventListener('click', async () => {
+    if (!validateCustomerInfo()) return;
+    const text = buildOrderText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('已複製訂單內容，貼給我們即可！');
+    } catch (err) {
+      showToast('複製失敗，請手動選取文字');
+    }
+  });
+
+  renderCart();
+</script>
+
+<script>
+  /* ============ 錨點導覽：手動控制捲動，避免被固定導覽列擋住 ============ */
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      e.preventDefault();
+      const headerOffset = 90;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+</script>
+
+<script>
+  /* ============ 客製 3D 公仔詢價表單 ============ */
+
+  const customOverlay = document.getElementById('customOverlay');
+  const openCustomForm = document.getElementById('openCustomForm');
+  const customClose = document.getElementById('customClose');
+  const cfSendBtn = document.getElementById('cfSendBtn');
+  const cfCopyBtn = document.getElementById('cfCopyBtn');
+
+  function openCustomModal() {
+    customOverlay.classList.add('open');
+  }
+  function closeCustomModal() {
+    customOverlay.classList.remove('open');
+  }
+
+  openCustomForm.addEventListener('click', openCustomModal);
+  customClose.addEventListener('click', closeCustomModal);
+  customOverlay.addEventListener('click', (e) => {
+    if (e.target === customOverlay) closeCustomModal();
+  });
+
+  function getVal(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function validateCustomForm() {
+    if (!getVal('cf-name') || !getVal('cf-contact')) {
+      showToast('請至少填寫姓名與聯絡方式');
+      return false;
+    }
+    if (!getVal('cf-desc')) {
+      showToast('請簡單描述一下想印的東西');
+      return false;
+    }
+    return true;
+  }
+
+  function buildCustomOrderText() {
+    const lines = ['【我の購物網站 客製 3D 公仔詢價】', ''];
+    lines.push(`姓名：${getVal('cf-name') || '（未填寫）'}`);
+    lines.push(`聯絡方式：${getVal('cf-contact') || '（未填寫）'}`);
+    lines.push(`Email：${getVal('cf-email') || '（未填寫）'}`);
+    lines.push('');
+    lines.push(`想印的東西：${getVal('cf-desc') || '（未填寫）'}`);
+    if (getVal('cf-refimg')) lines.push(`參考圖片連結：${getVal('cf-refimg')}`);
+    lines.push('');
+    lines.push(`尺寸大小：${getVal('cf-size') || '未選擇'}`);
+    lines.push(`顏色需求：${getVal('cf-color') || '（未填寫）'}`);
+    lines.push(`底座／刻字：${getVal('cf-base')}`);
+    lines.push(`用途：${getVal('cf-purpose')}`);
+    if (getVal('cf-deadline')) lines.push(`希望完成時間：${getVal('cf-deadline')}`);
+    if (getVal('cf-budget')) lines.push(`預算範圍：${getVal('cf-budget')}`);
+    if (getVal('cf-note')) lines.push(`備註：${getVal('cf-note')}`);
+    lines.push('', '（若有參考圖片檔案，記得在這封信裡手動附加喔！）');
+    return lines.join('\n');
+  }
+
+  cfSendBtn.addEventListener('click', () => {
+    if (!validateCustomForm()) return;
+
+    const inquiryData = {
+      name: getVal('cf-name'),
+      contact: getVal('cf-contact'),
+      email: getVal('cf-email'),
+      description: getVal('cf-desc'),
+      refImage: getVal('cf-refimg'),
+      size: getVal('cf-size'),
+      color: getVal('cf-color'),
+      base: getVal('cf-base'),
+      purpose: getVal('cf-purpose'),
+      deadline: getVal('cf-deadline'),
+      budget: getVal('cf-budget'),
+      note: getVal('cf-note'),
+      status: '未回覆',
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    cfSendBtn.disabled = true;
+    cfSendBtn.textContent = '送出中...';
+
+    db.ref('customInquiries').push(inquiryData)
+      .then(() => {
+        showToast('需求已送出，我們會盡快回覆報價！');
+        ['cf-name','cf-contact','cf-email','cf-desc','cf-refimg','cf-color','cf-deadline','cf-budget','cf-note'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+        document.getElementById('cf-size').selectedIndex = 0;
+        document.getElementById('cf-base').selectedIndex = 0;
+        document.getElementById('cf-purpose').selectedIndex = 0;
+        closeCustomModal();
+      })
+      .catch(() => {
+        showToast('送出失敗，請改用下方「複製內容」傳給我們');
+      })
+      .finally(() => {
+        cfSendBtn.disabled = false;
+        cfSendBtn.textContent = '送出需求';
+      });
+  });
+
+  cfCopyBtn.addEventListener('click', async () => {
+    if (!validateCustomForm()) return;
+    const text = buildCustomOrderText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('已複製內容，貼給我們即可！');
+    } catch (err) {
+      showToast('複製失敗，請手動選取文字');
+    }
+  });
 </script>
 
 </body>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台管理｜我の購物網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Iansui&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FFD3E0;
+    --pink-deep: #FF9EB8;
+    --blue: #C9E4FF;
+    --blue-deep: #8FC4FF;
+    --yellow: #FFF0B0;
+    --yellow-deep: #FFDD6B;
+    --purple: #E3D4FF;
+    --purple-deep: #C4A6FF;
+    --cream: #FFFBF5;
+    --ink: #5B4B6A;
+    --ink-soft: #8A7A97;
+    --white: #FFFFFF;
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --shadow-soft: 0 12px 30px rgba(180, 150, 200, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  h1, h2, h3, .logo, .btn { font-family: 'Iansui', 'Noto Sans TC', sans-serif; font-weight: 400; }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+
+  /* ---- login screen ---- */
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 44px 38px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+  }
+  .login-card .logo-mark { width: 56px; height: 56px; margin: 0 auto 14px; }
+  .login-card h1 { font-size: 1.6rem; margin-bottom: 6px; }
+  .login-card p.sub { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 26px; }
+  .login-card input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    background: var(--cream);
+    font-size: 0.92rem;
+    margin-bottom: 12px;
+    font-family: 'Noto Sans TC';
+  }
+  .login-card input:focus { outline: none; border-color: var(--pink-deep); }
+  .btn-login {
+    width: 100%;
+    padding: 13px;
+    border-radius: 999px;
+    background: var(--pink-deep);
+    color: white;
+    font-size: 1rem;
+    box-shadow: 0 8px 22px rgba(255, 158, 184, 0.45);
+    margin-top: 8px;
+  }
+  .login-error { color: #E0567A; font-size: 0.85rem; margin-top: 12px; min-height: 18px; }
+
+  /* ---- dashboard ---- */
+  .dash { display: none; }
+  .dash.show { display: block; }
+
+  header.dash-head {
+    background: rgba(255,251,245,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(227,212,255,0.5);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .dash-head-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash-head-inner .logo { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; }
+  .dash-head-inner .logo-mark { width: 34px; height: 34px; }
+  .btn-logout {
+    background: var(--white);
+    border: 2px solid var(--purple-deep);
+    color: var(--ink);
+    padding: 9px 20px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+  }
+  .btn-logout:hover { background: var(--purple); }
+
+  .dash-body { max-width: 1100px; margin: 0 auto; padding: 30px 26px 80px; }
+
+  .tabs { display: flex; gap: 10px; margin-bottom: 26px; }
+  .tab-btn {
+    background: var(--white);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    box-shadow: 0 4px 12px rgba(180,150,200,0.1);
+  }
+  .tab-btn.active { background: var(--ink); color: white; }
+  .tab-btn .count {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+    font-size: 0.78rem;
+  }
+  .tab-btn:not(.active) .count { background: var(--pink); color: var(--ink); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .empty-state {
+    text-align: center;
+    padding: 70px 20px;
+    color: var(--ink-soft);
+  }
+
+  .order-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 24px 26px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 18px rgba(180,150,200,0.12);
+  }
+  .order-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .order-time { font-size: 0.8rem; color: var(--ink-soft); }
+  .order-customer { font-size: 1.05rem; font-family: 'Noto Sans TC'; font-weight: 700; }
+  .order-contact { font-size: 0.88rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .status-select {
+    font-family: 'Noto Sans TC';
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .status-select.done { background: var(--blue); border-color: var(--blue-deep); }
+  .status-select.replied { background: var(--blue); border-color: var(--blue-deep); }
+
+  .order-items { border-top: 1px dashed rgba(139,122,151,0.25); padding-top: 12px; margin-top: 4px; }
+  .order-item-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 4px 0;
+  }
+  .order-item-row .name { color: var(--ink); }
+  .order-item-row .amt { color: var(--ink-soft); }
+
+  .order-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-family: 'Noto Sans TC';
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(139,122,151,0.25);
+  }
+  .order-total .amt { color: var(--pink-deep); }
+
+  .order-extra {
+    margin-top: 12px;
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+  .order-extra div { margin-bottom: 3px; }
+  .order-extra b { color: var(--ink); font-weight: 700; }
+
+  .inquiry-desc {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    margin: 10px 0;
+  }
+
+  .badge-new {
+    display: inline-block;
+    background: var(--yellow-deep);
+    color: var(--ink);
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="24" fill="#FFD3E0"/>
+      <path d="M14 30V20L24 14L34 20V30L24 36L14 30Z" stroke="#5B4B6A" stroke-width="2" stroke-linejoin="round" fill="#FFF3B8"/>
+      <path d="M14 20L24 26L34 20" stroke="#5B4B6A" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M24 26V36" stroke="#5B4B6A" stroke-width="2"/>
+    </svg>
+    <h1>後台登入</h1>
+    <p class="sub">我の購物網站・訂單管理</p>
+    <input type="email" id="loginEmail" placeholder="管理員 Email">
+    <input type="password" id="loginPassword" placeholder="密碼">
+    <button class="btn btn-login" id="loginBtn">登入</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dash" id="dash">
+  <header class="dash-head">
+    <div class="dash-head-inner">
+      <div class="logo">
+        <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="24" fill="#FFD3E0"/>
+          <path d="M14 30V20L24 14L34 20V30L24 36L14 30Z" stroke="#5B4B6A" stroke-width="2" stroke-linejoin="round" fill="#FFF3B8"/>
+          <path d="M14 20L24 26L34 20" stroke="#5B4B6A" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M24 26V36" stroke="#5B4B6A" stroke-width="2"/>
+        </svg>
+        訂單後台
+      </div>
+      <button class="btn-logout" id="logoutBtn">登出</button>
+    </div>
+  </header>
+
+  <div class="dash-body">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabOrders">購物車訂單 <span class="count" id="ordersCount">0</span></button>
+      <button class="tab-btn" id="tabInquiries">客製詢價 <span class="count" id="inquiriesCount">0</span></button>
+    </div>
+
+    <div class="panel active" id="panelOrders">
+      <div id="ordersList"><div class="empty-state">還沒有訂單</div></div>
+    </div>
+
+    <div class="panel" id="panelInquiries">
+      <div id="inquiriesList"><div class="empty-state">還沒有客製詢價</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCN5mIC4KHO6oCxsl1CxpzGGsGEBEZqVXI",
+    authDomain: "obv1rei-shop.firebaseapp.com",
+    databaseURL: "https://obv1rei-shop-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "obv1rei-shop",
+    storageBucket: "obv1rei-shop.firebasestorage.app",
+    messagingSenderId: "555143372361",
+    appId: "1:555143372361:web:55be224e2aca2af076a998"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
+
+  const loginWrap = document.getElementById('loginWrap');
+  const dash = document.getElementById('dash');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginError = document.getElementById('loginError');
+
+  loginBtn.addEventListener('click', () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    loginError.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = '登入中...';
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(err => {
+        loginError.textContent = '登入失敗，請確認 Email 和密碼是否正確';
+      })
+      .finally(() => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登入';
+      });
+  });
+
+  logoutBtn.addEventListener('click', () => auth.signOut());
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      loginWrap.style.display = 'none';
+      dash.classList.add('show');
+      loadOrders();
+      loadInquiries();
+    } else {
+      loginWrap.style.display = 'flex';
+      dash.classList.remove('show');
+    }
+  });
+
+  /* ---- tabs ---- */
+  const tabOrders = document.getElementById('tabOrders');
+  const tabInquiries = document.getElementById('tabInquiries');
+  const panelOrders = document.getElementById('panelOrders');
+  const panelInquiries = document.getElementById('panelInquiries');
+
+  tabOrders.addEventListener('click', () => {
+    tabOrders.classList.add('active'); tabInquiries.classList.remove('active');
+    panelOrders.classList.add('active'); panelInquiries.classList.remove('active');
+  });
+  tabInquiries.addEventListener('click', () => {
+    tabInquiries.classList.add('active'); tabOrders.classList.remove('active');
+    panelInquiries.classList.add('active'); panelOrders.classList.remove('active');
+  });
+
+  function formatMoney(n) { return 'NT$' + Number(n).toLocaleString(); }
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  /* ---- orders ---- */
+  function loadOrders() {
+    db.ref('orders').orderByChild('createdAt').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      const keys = Object.keys(data).reverse();
+      document.getElementById('ordersCount').textContent = keys.length;
+      const list = document.getElementById('ordersList');
+
+      if (keys.length === 0) {
+        list.innerHTML = '<div class="empty-state">還沒有訂單</div>';
+        return;
+      }
+
+      list.innerHTML = keys.map(key => {
+        const o = data[key];
+        const itemsHtml = (o.items || []).map(item => `
+          <div class="order-item-row">
+            <span class="name">${item.name} × ${item.qty}</span>
+            <span class="amt">${formatMoney(item.price * item.qty)}</span>
+          </div>
+        `).join('');
+
+        const isNew = o.status === '未處理' || !o.status;
+
+        return `
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <div class="order-customer">${o.name || '（未填寫）'}${isNew ? '<span class="badge-new">新</span>' : ''}</div>
+                <div class="order-contact">${o.contact || ''}${o.address ? ' ・ ' + o.address : ''}</div>
+                <div class="order-time">${formatTime(o.createdAt)}</div>
+              </div>
+              <select class="status-select ${o.status === '已完成' ? 'done' : ''}" data-key="${key}" data-node="orders">
+                <option value="未處理" ${o.status === '未處理' || !o.status ? 'selected' : ''}>未處理</option>
+                <option value="已聯絡" ${o.status === '已聯絡' ? 'selected' : ''}>已聯絡</option>
+                <option value="已完成" ${o.status === '已完成' ? 'selected' : ''}>已完成</option>
+              </select>
+            </div>
+            <div class="order-items">${itemsHtml}</div>
+            <div class="order-total"><span>小計</span><span class="amt">${formatMoney(o.subtotal || 0)}</span></div>
+            ${o.note ? `<div class="order-extra"><div><b>備註：</b>${o.note}</div></div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      list.querySelectorAll('.status-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+          db.ref(`orders/${sel.dataset.key}/status`).set(sel.value);
+        });
+      });
+    });
+  }
+
+  /* ---- custom inquiries ---- */
+  function loadInquiries() {
+    db.ref('customInquiries').orderByChild('createdAt').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      const keys = Object.keys(data).reverse();
+      document.getElementById('inquiriesCount').textContent = keys.length;
+      const list = document.getElementById('inquiriesList');
+
+      if (keys.length === 0) {
+        list.innerHTML = '<div class="empty-state">還沒有客製詢價</div>';
+        return;
+      }
+
+      list.innerHTML = keys.map(key => {
+        const q = data[key];
+        const isNew = q.status === '未回覆' || !q.status;
+
+        return `
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <div class="order-customer">${q.name || '（未填寫）'}${isNew ? '<span class="badge-new">新</span>' : ''}</div>
+                <div class="order-contact">${q.contact || ''}${q.email ? ' ・ ' + q.email : ''}</div>
+                <div class="order-time">${formatTime(q.createdAt)}</div>
+              </div>
+              <select class="status-select ${q.status === '已回覆' ? 'replied' : ''}" data-key="${key}" data-node="customInquiries">
+                <option value="未回覆" ${q.status === '未回覆' || !q.status ? 'selected' : ''}>未回覆</option>
+                <option value="已回覆" ${q.status === '已回覆' ? 'selected' : ''}>已回覆</option>
+                <option value="已成交" ${q.status === '已成交' ? 'selected' : ''}>已成交</option>
+              </select>
+            </div>
+            <div class="inquiry-desc">${q.description || ''}</div>
+            <div class="order-extra">
+              ${q.refImage ? `<div><b>參考圖片：</b><a href="${q.refImage}" target="_blank" rel="noopener">${q.refImage}</a></div>` : ''}
+              <div><b>尺寸：</b>${q.size || '未選擇'}　<b>顏色：</b>${q.color || '未填寫'}</div>
+              <div><b>底座／刻字：</b>${q.base || ''}　<b>用途：</b>${q.purpose || ''}</div>
+              ${q.deadline ? `<div><b>希望完成時間：</b>${q.deadline}</div>` : ''}
+              ${q.budget ? `<div><b>預算：</b>${q.budget}</div>` : ''}
+              ${q.note ? `<div><b>備註：</b>${q.note}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      list.querySelectorAll('.status-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+          db.ref(`customInquiries/${sel.dataset.key}/status`).set(sel.value);
+        });
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
