@@ -1243,6 +1243,17 @@
           <span class="m-email" id="memberEmailDisplay"></span>
           <button class="btn-logout-mini" id="doLogoutBtn">登出</button>
         </div>
+
+        <!-- 舊帳號補設定暱稱（設定後鎖定，不能再修改） -->
+        <div id="setNicknameSection" style="display:none; background:var(--yellow); border-radius:var(--radius-md); padding:16px 18px; margin-bottom:20px;">
+          <p style="font-size:0.86rem; color:var(--ink); margin-bottom:10px;">幫自己取一個暱稱吧！設定後就不能再更改囉。</p>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="setNicknameInput" placeholder="輸入暱稱" style="flex:1; padding:9px 14px; border-radius:999px; border:1.5px solid rgba(139,122,151,0.25); font-family:'Noto Sans TC'; font-size:0.88rem;">
+            <button class="btn btn-primary btn-sm" id="setNicknameBtn">確定</button>
+          </div>
+          <div class="auth-msg" id="setNicknameMsg" style="text-align:left; margin-top:6px;"></div>
+        </div>
+
         <h4 style="margin-bottom:12px;">我的訂單</h4>
         <div id="myOrdersList"><div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div></div>
       </div>
@@ -1808,6 +1819,37 @@
   const authSection = document.getElementById('authSection');
   const myOrdersSection = document.getElementById('myOrdersSection');
   const memberEmailDisplay = document.getElementById('memberEmailDisplay');
+  const setNicknameSection = document.getElementById('setNicknameSection');
+  const setNicknameInput = document.getElementById('setNicknameInput');
+  const setNicknameBtn = document.getElementById('setNicknameBtn');
+  const setNicknameMsg = document.getElementById('setNicknameMsg');
+
+  setNicknameBtn.addEventListener('click', () => {
+    const nickname = setNicknameInput.value.trim();
+    setNicknameMsg.textContent = ''; setNicknameMsg.className = 'auth-msg';
+
+    if (!nickname) {
+      setNicknameMsg.textContent = '請輸入暱稱';
+      setNicknameMsg.classList.add('error');
+      return;
+    }
+    if (!currentUser) return;
+
+    setNicknameBtn.disabled = true;
+    currentUser.updateProfile({ displayName: nickname })
+      .then(() => {
+        memberEmailDisplay.textContent = nickname;
+        setNicknameSection.style.display = 'none';
+        setNicknameInput.value = '';
+      })
+      .catch(() => {
+        setNicknameMsg.textContent = '設定失敗，請稍後再試';
+        setNicknameMsg.classList.add('error');
+      })
+      .finally(() => {
+        setNicknameBtn.disabled = false;
+      });
+  });
   const myOrdersList = document.getElementById('myOrdersList');
 
   const chatFab = document.getElementById('chatFab');
@@ -1938,6 +1980,7 @@
       authSection.style.display = 'none';
       myOrdersSection.style.display = 'block';
       memberEmailDisplay.textContent = user.displayName || user.email;
+      setNicknameSection.style.display = user.displayName ? 'none' : 'block';
       loadMyOrders(user.uid);
       loadChatMessages(user.uid);
     } else {
