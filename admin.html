@@ -381,7 +381,7 @@
     </div>
     <div class="pf-field">
       <label>款式選項（選填）</label>
-      <input type="text" id="pfOptions" placeholder="用逗號分隔，例如：貓咪,狗狗,兔子">
+      <input type="text" id="pfOptions" placeholder="貓咪,狗狗,兔子（逗號或頓號分隔都可以）">
       <div class="pf-hint">留空的話，商品卡片就不會出現款式選單。系統會自動加上「其他」選項。</div>
     </div>
     <div class="pf-field checkbox">
@@ -679,7 +679,7 @@
     if (!price || price <= 0) { alert('請輸入正確的價格'); return; }
 
     const options = pfOptions.value.trim()
-      ? pfOptions.value.split(',').map(s => s.trim()).filter(Boolean)
+      ? pfOptions.value.split(/[,，、]+/).map(s => s.trim()).filter(Boolean)
       : [];
 
     const productData = {
