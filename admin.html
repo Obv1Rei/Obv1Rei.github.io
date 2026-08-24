@@ -36,6 +36,18 @@
   h1, h2, h3, .logo, .btn { font-family: 'Iansui', 'Noto Sans TC', sans-serif; font-weight: 400; }
   a { text-decoration: none; color: inherit; }
   button { font-family: inherit; cursor: pointer; border: none; }
+  .btn {
+    font-family: 'Iansui', 'Noto Sans TC', sans-serif;
+    padding: 11px 24px;
+    border-radius: 999px;
+    font-size: 0.92rem;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary { background: var(--pink-deep); color: white; box-shadow: 0 6px 16px rgba(255,158,184,0.4); }
+  .btn-outline { background: white; border: 2px solid var(--purple-deep); color: var(--ink); }
+  .btn-danger { background: #FCE4E9; color: #C13E5E; font-size: 0.8rem; padding: 7px 16px; }
+  .btn-sm { font-size: 0.82rem; padding: 7px 16px; }
 
   /* ---- login screen ---- */
   .login-wrap {
@@ -222,8 +234,67 @@
     margin-left: 8px;
     vertical-align: middle;
   }
+
+  /* ---- product management ---- */
+  .product-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
+  .product-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 6px 18px rgba(180,150,200,0.1);
+  }
+  .product-card.inactive { opacity: 0.5; }
+  .product-icon { font-size: 2rem; width: 52px; text-align: center; flex-shrink: 0; }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 1.02rem; font-weight: 700; font-family: 'Noto Sans TC'; }
+  .product-price { color: var(--pink-deep); font-weight: 700; font-size: 0.92rem; margin-left: 8px; }
+  .product-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
+  .product-options { font-size: 0.78rem; color: var(--ink-soft); margin-top: 4px; }
+  .product-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .pf-overlay {
+    position: fixed; inset: 0;
+    background: rgba(91,75,106,0.4);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 500;
+    padding: 20px;
+  }
+  .pf-overlay.open { display: flex; }
+  .pf-card {
+    background: var(--cream);
+    border-radius: var(--radius-lg);
+    max-width: 480px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 30px 30px 24px;
+  }
+  .pf-card h3 { margin-bottom: 20px; }
+  .pf-field { margin-bottom: 14px; }
+  .pf-field label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; font-family: 'Noto Sans TC'; }
+  .pf-field input, .pf-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    background: white;
+    font-family: 'Noto Sans TC';
+    font-size: 0.9rem;
+  }
+  .pf-field .pf-hint { font-size: 0.76rem; color: var(--ink-soft); margin-top: 4px; }
+  .pf-field.checkbox { display: flex; align-items: center; gap: 8px; }
+  .pf-field.checkbox label { margin-bottom: 0; }
+  .pf-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .pf-actions .btn { flex: 1; }
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
@@ -265,6 +336,7 @@
     <div class="tabs">
       <button class="tab-btn active" id="tabOrders">購物車訂單 <span class="count" id="ordersCount">0</span></button>
       <button class="tab-btn" id="tabInquiries">客製詢價 <span class="count" id="inquiriesCount">0</span></button>
+      <button class="tab-btn" id="tabProducts">商品管理 <span class="count" id="productsCount">0</span></button>
     </div>
 
     <div class="panel active" id="panelOrders">
@@ -273,6 +345,53 @@
 
     <div class="panel" id="panelInquiries">
       <div id="inquiriesList"><div class="empty-state">還沒有客製詢價</div></div>
+    </div>
+
+    <div class="panel" id="panelProducts">
+      <div class="product-toolbar">
+        <button class="btn btn-outline btn-sm" id="seedProductsBtn">初始化預設商品（僅需一次）</button>
+        <button class="btn btn-primary" id="addProductBtn">＋新增商品</button>
+      </div>
+      <div id="productsList"><div class="empty-state">還沒有商品，點右上角「新增商品」開始吧！</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增／編輯商品表單 -->
+<div class="pf-overlay" id="pfOverlay">
+  <div class="pf-card">
+    <h3 id="pfTitle">新增商品</h3>
+    <input type="hidden" id="pfKey">
+
+    <div class="pf-field">
+      <label>圖示（貼上一個 emoji，例如 🧸 🐰 🔔）</label>
+      <input type="text" id="pfIcon" maxlength="4" placeholder="🎁">
+    </div>
+    <div class="pf-field">
+      <label>商品名稱</label>
+      <input type="text" id="pfName" placeholder="例如：動物公仔">
+    </div>
+    <div class="pf-field">
+      <label>價格（NT$）</label>
+      <input type="number" id="pfPrice" placeholder="例如：480">
+    </div>
+    <div class="pf-field">
+      <label>簡短說明</label>
+      <textarea id="pfDesc" rows="2" placeholder="一句話介紹這個商品"></textarea>
+    </div>
+    <div class="pf-field">
+      <label>款式選項（選填）</label>
+      <input type="text" id="pfOptions" placeholder="用逗號分隔，例如：貓咪,狗狗,兔子">
+      <div class="pf-hint">留空的話，商品卡片就不會出現款式選單。系統會自動加上「其他」選項。</div>
+    </div>
+    <div class="pf-field checkbox">
+      <input type="checkbox" id="pfActive" checked>
+      <label for="pfActive">在網站上顯示這個商品</label>
+    </div>
+
+    <div class="pf-actions">
+      <button class="btn btn-outline" id="pfCancelBtn">取消</button>
+      <button class="btn btn-primary" id="pfSaveBtn">儲存</button>
     </div>
   </div>
 </div>
@@ -324,6 +443,7 @@
       dash.classList.add('show');
       loadOrders();
       loadInquiries();
+      loadProducts();
     } else {
       loginWrap.style.display = 'flex';
       dash.classList.remove('show');
@@ -333,17 +453,27 @@
   /* ---- tabs ---- */
   const tabOrders = document.getElementById('tabOrders');
   const tabInquiries = document.getElementById('tabInquiries');
+  const tabProducts = document.getElementById('tabProducts');
   const panelOrders = document.getElementById('panelOrders');
   const panelInquiries = document.getElementById('panelInquiries');
+  const panelProducts = document.getElementById('panelProducts');
 
-  tabOrders.addEventListener('click', () => {
-    tabOrders.classList.add('active'); tabInquiries.classList.remove('active');
-    panelOrders.classList.add('active'); panelInquiries.classList.remove('active');
-  });
-  tabInquiries.addEventListener('click', () => {
-    tabInquiries.classList.add('active'); tabOrders.classList.remove('active');
-    panelInquiries.classList.add('active'); panelOrders.classList.remove('active');
-  });
+  const allTabs = [
+    [tabOrders, panelOrders],
+    [tabInquiries, panelInquiries],
+    [tabProducts, panelProducts]
+  ];
+
+  function activateTab(tab, panel) {
+    allTabs.forEach(([t, p]) => {
+      t.classList.toggle('active', t === tab);
+      p.classList.toggle('active', p === panel);
+    });
+  }
+
+  tabOrders.addEventListener('click', () => activateTab(tabOrders, panelOrders));
+  tabInquiries.addEventListener('click', () => activateTab(tabInquiries, panelInquiries));
+  tabProducts.addEventListener('click', () => activateTab(tabProducts, panelProducts));
 
   function formatMoney(n) { return 'NT$' + Number(n).toLocaleString(); }
   function formatTime(ts) {
@@ -457,6 +587,149 @@
       });
     });
   }
+
+  /* ---- 商品管理 ---- */
+  const productsList = document.getElementById('productsList');
+  const pfOverlay = document.getElementById('pfOverlay');
+  const pfTitle = document.getElementById('pfTitle');
+  const pfKey = document.getElementById('pfKey');
+  const pfIcon = document.getElementById('pfIcon');
+  const pfName = document.getElementById('pfName');
+  const pfPrice = document.getElementById('pfPrice');
+  const pfDesc = document.getElementById('pfDesc');
+  const pfOptions = document.getElementById('pfOptions');
+  const pfActive = document.getElementById('pfActive');
+
+  function loadProducts() {
+    db.ref('products').orderByChild('order').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      const keys = Object.keys(data);
+      document.getElementById('productsCount').textContent = keys.length;
+
+      if (keys.length === 0) {
+        productsList.innerHTML = '<div class="empty-state">還沒有商品，點右上角「新增商品」開始吧！</div>';
+        return;
+      }
+
+      productsList.innerHTML = keys.map(key => {
+        const p = data[key];
+        const optionsText = Array.isArray(p.options) && p.options.length > 0
+          ? '款式：' + p.options.join('、')
+          : '（無款式選項）';
+        return `
+          <div class="product-card ${p.active === false ? 'inactive' : ''}">
+            <div class="product-icon">${p.icon || '🎁'}</div>
+            <div class="product-info">
+              <span class="product-name">${p.name}</span><span class="product-price">${formatMoney(p.price)}</span>
+              <div class="product-desc">${p.description || ''}</div>
+              <div class="product-options">${optionsText}${p.active === false ? '　・　已下架' : ''}</div>
+            </div>
+            <div class="product-actions">
+              <button class="btn btn-outline btn-sm" data-edit="${key}">編輯</button>
+              <button class="btn btn-danger" data-delete="${key}">刪除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      productsList.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => openProductForm(btn.dataset.edit, data[btn.dataset.edit]));
+      });
+      productsList.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (confirm('確定要刪除這個商品嗎？此動作無法復原。')) {
+            db.ref('products/' + btn.dataset.delete).remove();
+          }
+        });
+      });
+    });
+  }
+
+  function openProductForm(key, product) {
+    pfKey.value = key || '';
+    if (product) {
+      pfTitle.textContent = '編輯商品';
+      pfIcon.value = product.icon || '';
+      pfName.value = product.name || '';
+      pfPrice.value = product.price || '';
+      pfDesc.value = product.description || '';
+      pfOptions.value = Array.isArray(product.options) ? product.options.join(',') : '';
+      pfActive.checked = product.active !== false;
+    } else {
+      pfTitle.textContent = '新增商品';
+      pfIcon.value = '';
+      pfName.value = '';
+      pfPrice.value = '';
+      pfDesc.value = '';
+      pfOptions.value = '';
+      pfActive.checked = true;
+    }
+    pfOverlay.classList.add('open');
+  }
+
+  document.getElementById('addProductBtn').addEventListener('click', () => openProductForm(null, null));
+  document.getElementById('pfCancelBtn').addEventListener('click', () => pfOverlay.classList.remove('open'));
+  pfOverlay.addEventListener('click', (e) => { if (e.target === pfOverlay) pfOverlay.classList.remove('open'); });
+
+  document.getElementById('pfSaveBtn').addEventListener('click', () => {
+    const name = pfName.value.trim();
+    const price = parseInt(pfPrice.value, 10);
+
+    if (!name) { alert('請輸入商品名稱'); return; }
+    if (!price || price <= 0) { alert('請輸入正確的價格'); return; }
+
+    const options = pfOptions.value.trim()
+      ? pfOptions.value.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+
+    const productData = {
+      icon: pfIcon.value.trim() || '🎁',
+      name,
+      price,
+      description: pfDesc.value.trim(),
+      options,
+      active: pfActive.checked
+    };
+
+    const key = pfKey.value;
+    if (key) {
+      db.ref('products/' + key).update(productData).then(() => {
+        pfOverlay.classList.remove('open');
+      });
+    } else {
+      productData.order = Date.now();
+      productData.createdAt = firebase.database.ServerValue.TIMESTAMP;
+      db.ref('products').push(productData).then(() => {
+        pfOverlay.classList.remove('open');
+      });
+    }
+  });
+
+  /* ---- 一鍵初始化預設商品（僅在資料庫是空的時候可用） ---- */
+  document.getElementById('seedProductsBtn').addEventListener('click', () => {
+    db.ref('products').once('value').then(snapshot => {
+      if (snapshot.exists()) {
+        alert('已經有商品資料了，不會重複匯入。');
+        return;
+      }
+      const now = Date.now();
+      const defaults = [
+        { icon: '🧸', name: '卡通公仔', price: 450, description: '喜歡的卡通角色，做成桌上的小公仔', options: ['三麗鷗','哆啦A夢','蠟筆小新','吉伊卡哇','小小兵'] },
+        { icon: '🔔', name: '吊飾', price: 220, description: '包包、鑰匙圈上的小裝飾，療癒又好看', options: ['愛心吊飾','星星吊飾','英文字母／名字吊飾','動物造型吊飾','花朵吊飾'] },
+        { icon: '🐰', name: '動物公仔', price: 480, description: '貓咪、兔子、熊熊⋯各種可愛動物造型', options: ['貓咪','狗狗','兔子','熊熊'] },
+        { icon: '🧺', name: '日常生活用品', price: 350, description: '收納盒、掛勾、置物架，讓生活更方便', options: ['筷子架','書架','收納盒','筆筒'] },
+        { icon: '🪀', name: '玩具', price: 280, description: '好玩又好看的小玩具，送禮自用都適合', options: ['陀螺','迷你積木','彈跳玩具','扭蛋公仔','益智拼圖'] }
+      ];
+      const updates = {};
+      defaults.forEach((p, i) => {
+        const newKey = db.ref('products').push().key;
+        updates[newKey] = { ...p, active: true, order: now + i, createdAt: firebase.database.ServerValue.TIMESTAMP };
+      });
+      db.ref('products').update(updates).then(() => {
+        alert('預設商品已匯入！');
+      });
+    });
+  });
 </script>
 
 </body>
