@@ -1804,38 +1804,36 @@
   }
 
   function loadMyOrders(uid) {
-    db.ref('orders').orderByChild('uid').equalTo(uid).once('value')
-      .then(snapshot => {
-        const data = snapshot.val() || {};
-        const keys = Object.keys(data).reverse();
+    db.ref('orders').orderByChild('uid').equalTo(uid).on('value', snapshot => {
+      const data = snapshot.val() || {};
+      const keys = Object.keys(data).reverse();
 
-        if (keys.length === 0) {
-          myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div>';
-          return;
-        }
+      if (keys.length === 0) {
+        myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div>';
+        return;
+      }
 
-        myOrdersList.innerHTML = keys.map(key => {
-          const o = data[key];
-          const statusClass = o.status === '已完成' ? 'done' : (o.status === '處理中' || o.status === '已聯絡' ? 'processing' : '');
-          const itemsHtml = (o.items || []).map(item =>
-            `<div class="my-order-item">${item.name} × ${item.qty}</div>`
-          ).join('');
+      myOrdersList.innerHTML = keys.map(key => {
+        const o = data[key];
+        const statusClass = o.status === '已完成' ? 'done' : (o.status === '處理中' || o.status === '已聯絡' ? 'processing' : '');
+        const itemsHtml = (o.items || []).map(item =>
+          `<div class="my-order-item">${item.name} × ${item.qty}</div>`
+        ).join('');
 
-          return `
-            <div class="my-order-card">
-              <div class="my-order-top">
-                <span class="my-order-date">${myOrderFormatTime(o.createdAt)}</span>
-                <span class="my-order-status ${statusClass}">${o.status || '未處理'}</span>
-              </div>
-              ${itemsHtml}
-              <div class="my-order-total">${formatMoney(o.subtotal || 0)}</div>
+        return `
+          <div class="my-order-card">
+            <div class="my-order-top">
+              <span class="my-order-date">${myOrderFormatTime(o.createdAt)}</span>
+              <span class="my-order-status ${statusClass}">${o.status || '未處理'}</span>
             </div>
-          `;
-        }).join('');
-      })
-      .catch(() => {
-        myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">讀取訂單時發生問題，請稍後再試</div>';
-      });
+            ${itemsHtml}
+            <div class="my-order-total">${formatMoney(o.subtotal || 0)}</div>
+          </div>
+        `;
+      }).join('');
+    }, () => {
+      myOrdersList.innerHTML = '<div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">讀取訂單時發生問題，請稍後再試</div>';
+    });
   }
 </script>
   document.querySelectorAll('a[href^="#"]').forEach(link => {
