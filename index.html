@@ -1224,6 +1224,9 @@
 
         <div class="auth-panel" id="authPanelSignup">
           <div class="form-group">
+            <input type="text" id="signupNicknameInput" placeholder="暱稱">
+          </div>
+          <div class="form-group">
             <input type="email" id="signupEmailInput" placeholder="Email">
           </div>
           <div class="form-group">
@@ -1868,11 +1871,17 @@
 
   /* ---- 註冊 ---- */
   document.getElementById('doSignupBtn').addEventListener('click', () => {
+    const nickname = document.getElementById('signupNicknameInput').value.trim();
     const email = document.getElementById('signupEmailInput').value.trim();
     const password = document.getElementById('signupPasswordInput').value;
     const msg = document.getElementById('signupMsg');
     msg.textContent = ''; msg.className = 'auth-msg';
 
+    if (!nickname) {
+      msg.textContent = '請輸入暱稱';
+      msg.classList.add('error');
+      return;
+    }
     if (!email || !password) {
       msg.textContent = '請輸入 Email 與密碼';
       msg.classList.add('error');
@@ -1885,6 +1894,7 @@
     }
 
     auth.createUserWithEmailAndPassword(email, password)
+      .then((cred) => cred.user.updateProfile({ displayName: nickname }))
       .then(() => { closeMemberModal(); })
       .catch(err => {
         msg.textContent = err.code === 'auth/email-already-in-use'
@@ -1927,7 +1937,7 @@
       memberModalTitle.textContent = '我的會員';
       authSection.style.display = 'none';
       myOrdersSection.style.display = 'block';
-      memberEmailDisplay.textContent = user.email;
+      memberEmailDisplay.textContent = user.displayName || user.email;
       loadMyOrders(user.uid);
       loadChatMessages(user.uid);
     } else {
