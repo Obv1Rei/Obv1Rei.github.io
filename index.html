@@ -446,6 +446,24 @@
   }
   .member-fab.logged-in .dot-logged-in { display: block; }
 
+  /* ---- chat floating button ---- */
+  .chat-fab {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    background: var(--blue-deep);
+    box-shadow: 0 10px 26px rgba(143, 196, 255, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: none;
+    z-index: 200;
+    transition: transform 0.2s;
+  }
+  .chat-fab:hover { transform: translateX(-50%) scale(1.08); }
+
   /* ---- member modal ---- */
   .auth-tabs { display: flex; gap: 10px; margin-bottom: 18px; }
   .auth-tab-btn {
@@ -716,6 +734,7 @@
   @media (max-width: 500px) {
     .cart-fab { bottom: 20px; right: 20px; }
     .member-fab { bottom: 20px; left: 20px; }
+    .chat-fab { bottom: 20px; }
     .toast { right: 20px; left: 20px; text-align: center; }
   }
 
@@ -1221,17 +1240,45 @@
         </div>
         <h4 style="margin-bottom:12px;">我的訂單</h4>
         <div id="myOrdersList"><div class="empty-state" style="padding:30px 0;color:var(--ink-soft);text-align:center;">目前還沒有訂單紀錄</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <h4 style="margin:24px 0 12px;">問店家</h4>
-        <div class="chat-box" id="chatBox">
-          <div class="chat-empty" id="chatEmpty">還沒有留言，有問題可以在下面直接問我們！</div>
-        </div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="輸入你的問題...">
-          <button class="chat-send-btn" id="chatSendBtn" aria-label="送出">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L13 20L11 13L4 12Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" fill="#fff"/></svg>
-          </button>
-        </div>
+<!-- CHAT -->
+<button class="chat-fab" id="chatFab" aria-label="問店家">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M4 5H20C20.5523 5 21 5.44772 21 6V16C21 16.5523 20.5523 17 20 17H8L4 20V6C4 5.44772 4.44772 5 5 5H4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+    <circle cx="9" cy="11" r="1.1" fill="#fff"/>
+    <circle cx="12.5" cy="11" r="1.1" fill="#fff"/>
+    <circle cx="16" cy="11" r="1.1" fill="#fff"/>
+  </svg>
+</button>
+
+<div class="modal-overlay" id="chatModalOverlay">
+  <div class="modal-card" style="max-width:440px; display:flex; flex-direction:column;">
+    <div class="modal-head">
+      <div>
+        <h3>問店家</h3>
+        <p>有任何問題都可以在這裡直接留言</p>
+      </div>
+      <button class="modal-close" id="chatModalClose" aria-label="關閉">✕</button>
+    </div>
+
+    <div id="chatLoginPrompt" style="display:none; padding:36px 28px; text-align:center;">
+      <p style="color:var(--ink-soft); margin-bottom:18px;">請先登入會員才能留言喔！</p>
+      <button class="btn btn-primary" id="chatGoLoginBtn">前往登入</button>
+    </div>
+
+    <div id="chatMainSection" style="display:none; flex-direction:column;">
+      <div class="chat-box" id="chatBox" style="padding:20px 26px 8px;">
+        <div class="chat-empty" id="chatEmpty">還沒有留言，有問題可以在下面直接問我們！</div>
+      </div>
+      <div class="chat-input-row" style="padding:0 26px 26px;">
+        <input type="text" id="chatInput" placeholder="輸入你的問題...">
+        <button class="chat-send-btn" id="chatSendBtn" aria-label="送出">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L13 20L11 13L4 12Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" fill="#fff"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -1755,6 +1802,21 @@
   const memberEmailDisplay = document.getElementById('memberEmailDisplay');
   const myOrdersList = document.getElementById('myOrdersList');
 
+  const chatFab = document.getElementById('chatFab');
+  const chatModalOverlay = document.getElementById('chatModalOverlay');
+  const chatModalClose = document.getElementById('chatModalClose');
+  const chatLoginPrompt = document.getElementById('chatLoginPrompt');
+  const chatMainSection = document.getElementById('chatMainSection');
+  const chatGoLoginBtn = document.getElementById('chatGoLoginBtn');
+
+  chatFab.addEventListener('click', () => chatModalOverlay.classList.add('open'));
+  chatModalClose.addEventListener('click', () => chatModalOverlay.classList.remove('open'));
+  chatModalOverlay.addEventListener('click', (e) => { if (e.target === chatModalOverlay) chatModalOverlay.classList.remove('open'); });
+  chatGoLoginBtn.addEventListener('click', () => {
+    chatModalOverlay.classList.remove('open');
+    openMemberModal();
+  });
+
   const authTabLogin = document.getElementById('authTabLogin');
   const authTabSignup = document.getElementById('authTabSignup');
   const authPanelLogin = document.getElementById('authPanelLogin');
@@ -1868,6 +1930,15 @@
       memberModalTitle.textContent = '會員登入';
       authSection.style.display = 'block';
       myOrdersSection.style.display = 'none';
+    }
+
+    /* 同步更新「問店家」視窗的登入狀態 */
+    if (user) {
+      chatLoginPrompt.style.display = 'none';
+      chatMainSection.style.display = 'flex';
+    } else {
+      chatLoginPrompt.style.display = 'block';
+      chatMainSection.style.display = 'none';
     }
   });
 
