@@ -562,6 +562,7 @@
     font-size: 0.88rem;
     line-height: 1.5;
     word-break: break-word;
+    white-space: pre-line;
   }
   .chat-bubble.from-customer {
     align-self: flex-end;
@@ -1966,6 +1967,7 @@
       setNicknameSection.style.display = user.displayName ? 'none' : 'block';
       loadMyOrders(user.uid);
       loadChatMessages(user.uid);
+      sendWelcomeMessageIfNeeded(user.uid);
     } else {
       memberFab.classList.remove('logged-in');
       memberModalTitle.textContent = '會員登入';
@@ -2026,6 +2028,32 @@
   const chatBox = document.getElementById('chatBox');
   const chatInput = document.getElementById('chatInput');
   const chatSendBtn = document.getElementById('chatSendBtn');
+
+  const WELCOME_MESSAGE = `☁️ 歡迎來到 Tiny Print Shop！
+這是一間由姐妹一起經營的
+🩷 小小3D列印店 🩷
+✨ 可愛小物
+🎀 3D列印作品
+🧸 客製化小東西
+希望每一件小作品，都能帶給你快樂 ♡
+有任何問題可以來問我們喔～(˶ᵔ ᵕ ᵔ˶)੭
+
+其他聯絡方式：
+LINE: 034hdjgr
+Email: miniprintshopp@gmail.com
+Instagram: miniprintshop`;
+
+  function sendWelcomeMessageIfNeeded(uid) {
+    db.ref('messages/' + uid).once('value').then(snapshot => {
+      if (!snapshot.exists()) {
+        db.ref('messages/' + uid).push({
+          sender: 'shop',
+          text: WELCOME_MESSAGE,
+          createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
+      }
+    });
+  }
 
   function chatFormatTime(ts) {
     if (!ts) return '';
