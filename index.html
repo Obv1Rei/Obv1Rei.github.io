@@ -1525,9 +1525,7 @@
           <select class="item-select">
             <option value="">請選擇款式</option>
             ${p.options.map(o => `<option value="${o}">${o}</option>`).join('')}
-            <option value="其他">其他（自行輸入）</option>
           </select>
-          <input type="text" class="item-other" placeholder="請輸入想要的款式" style="display:none;margin-top:8px;">
         </div>
       ` : '';
 
@@ -1595,14 +1593,7 @@
       if (sel) {
         const selVal = sel.value;
         if (!selVal) { showToast('請先選擇款式'); return; }
-        if (selVal === '其他') {
-          const otherInput = card.querySelector('.item-other');
-          const customVal = otherInput.value.trim();
-          if (!customVal) { showToast('請輸入想要的款式'); return; }
-          styleName = customVal;
-        } else {
-          styleName = selVal;
-        }
+        styleName = selVal;
       }
 
       const fullName = styleName ? `${baseName}－${styleName}` : baseName;
@@ -1619,19 +1610,6 @@
       }, 1000);
 
       showToast(`已加入「${fullName}」到購物車`);
-    }
-  });
-
-  catGrid.addEventListener('change', (e) => {
-    if (e.target.classList.contains('item-select')) {
-      const card = e.target.closest('.cat-card');
-      const otherInput = card.querySelector('.item-other');
-      if (e.target.value === '其他') {
-        otherInput.style.display = 'block';
-      } else {
-        otherInput.style.display = 'none';
-        otherInput.value = '';
-      }
     }
   });
 
