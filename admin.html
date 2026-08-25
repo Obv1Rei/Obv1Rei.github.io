@@ -293,6 +293,44 @@
   .pf-actions { display: flex; gap: 10px; margin-top: 18px; }
   .pf-actions .btn { flex: 1; }
 
+  /* ---- option rows (styles with photos) ---- */
+  .pf-option-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .pf-option-thumb {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--cream);
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 1.5px dashed rgba(139,122,151,0.3);
+  }
+  .pf-option-row input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(139,122,151,0.25);
+    font-family: 'Noto Sans TC';
+    font-size: 0.86rem;
+  }
+  .pf-option-remove {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+  }
+  .pf-option-remove:hover { color: #C13E5E; }
+
   /* ---- customer message threads ---- */
   .thread-card {
     background: var(--white);
@@ -455,8 +493,9 @@
     </div>
     <div class="pf-field">
       <label>款式選項（選填）</label>
-      <input type="text" id="pfOptions" placeholder="貓咪,狗狗,兔子（逗號或頓號分隔都可以）">
-      <div class="pf-hint">留空的話，商品卡片就不會出現款式選單。系統會自動加上「其他」選項。</div>
+      <div class="pf-hint" style="margin-bottom:8px;">留空的話，商品卡片就不會出現款式選單，直接顯示單一商品。每個款式都可以各自上傳照片，讓客人瀏覽。</div>
+      <div id="pfOptionsList"></div>
+      <button type="button" class="btn btn-outline btn-sm" id="pfAddOptionBtn" style="margin-top:8px;">＋新增款式</button>
     </div>
     <div class="pf-field checkbox">
       <input type="checkbox" id="pfActive" checked>
@@ -706,6 +745,8 @@
   const pfImagePreview = document.getElementById('pfImagePreview');
   const pfRemoveImageBtn = document.getElementById('pfRemoveImageBtn');
   const pfImageHint = document.getElementById('pfImageHint');
+  const pfOptionsList = document.getElementById('pfOptionsList');
+  const pfAddOptionBtn = document.getElementById('pfAddOptionBtn');
 
   /* 把選好的照片壓縮成適合網頁顯示的小尺寸 base64 圖片 */
   function compressImageFile(file, maxDim, quality) {
@@ -747,6 +788,57 @@
     }
   }
 
+  /* ---- 款式選項列（每個款式各自一張照片） ---- */
+  function addOptionRow(name, image) {
+    const row = document.createElement('div');
+    row.className = 'pf-option-row';
+    row.innerHTML = `
+      <img class="pf-option-thumb" src="${image || ''}" title="點擊上傳照片">
+      <input type="file" accept="image/*" style="display:none;">
+      <input type="text" class="pf-option-name" placeholder="款式名稱，例如：貓咪" value="${name ? name.replace(/"/g, '&quot;') : ''}">
+      <button type="button" class="pf-option-remove" aria-label="移除">✕</button>
+    `;
+
+    const thumb = row.querySelector('.pf-option-thumb');
+    const fileInput = row.querySelector('input[type="file"]');
+    if (!image) thumb.style.opacity = '0.4';
+
+    thumb.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressImageFile(file, 300, 0.7);
+        thumb.src = dataUrl;
+        thumb.dataset.image = dataUrl;
+        thumb.style.opacity = '1';
+      } catch (err) {
+        alert('照片處理失敗，請換一張再試試看');
+      }
+      fileInput.value = '';
+    });
+
+    if (image) thumb.dataset.image = image;
+
+    row.querySelector('.pf-option-remove').addEventListener('click', () => row.remove());
+
+    pfOptionsList.appendChild(row);
+  }
+
+  pfAddOptionBtn.addEventListener('click', () => addOptionRow('', ''));
+
+  function getOptionsFromForm() {
+    const rows = pfOptionsList.querySelectorAll('.pf-option-row');
+    const options = [];
+    rows.forEach(row => {
+      const name = row.querySelector('.pf-option-name').value.trim();
+      if (!name) return;
+      const image = row.querySelector('.pf-option-thumb').dataset.image || null;
+      options.push({ name, image });
+    });
+    return options;
+  }
+
   pfImageFile.addEventListener('change', async () => {
     const file = pfImageFile.files[0];
     if (!file) return;
@@ -777,7 +869,7 @@
       productsList.innerHTML = keys.map(key => {
         const p = data[key];
         const optionsText = Array.isArray(p.options) && p.options.length > 0
-          ? '款式：' + p.options.join('、')
+          ? '款式：' + p.options.map(o => typeof o === 'string' ? o : o.name).join('、')
           : '（無款式選項）';
         return `
           <div class="product-card ${p.active === false ? 'inactive' : ''}">
@@ -810,22 +902,30 @@
 
   function openProductForm(key, product) {
     pfKey.value = key || '';
+    pfOptionsList.innerHTML = '';
     if (product) {
       pfTitle.textContent = '編輯商品';
       pfIcon.value = product.icon || '';
       pfName.value = product.name || '';
       pfPrice.value = product.price || '';
       pfDesc.value = product.description || '';
-      pfOptions.value = Array.isArray(product.options) ? product.options.join(',') : '';
       pfActive.checked = product.active !== false;
       showImagePreview(product.image || '');
+      if (Array.isArray(product.options)) {
+        product.options.forEach(opt => {
+          if (typeof opt === 'string') {
+            addOptionRow(opt, ''); // 舊資料相容：純文字款式，沒有照片
+          } else {
+            addOptionRow(opt.name, opt.image);
+          }
+        });
+      }
     } else {
       pfTitle.textContent = '新增商品';
       pfIcon.value = '';
       pfName.value = '';
       pfPrice.value = '';
       pfDesc.value = '';
-      pfOptions.value = '';
       pfActive.checked = true;
       showImagePreview('');
     }
@@ -843,9 +943,7 @@
     if (!name) { alert('請輸入商品名稱'); return; }
     if (!price || price <= 0) { alert('請輸入正確的價格'); return; }
 
-    const options = pfOptions.value.trim()
-      ? pfOptions.value.split(/[,，、]+/).map(s => s.trim()).filter(Boolean)
-      : [];
+    const options = getOptionsFromForm();
 
     const productData = {
       icon: pfIcon.value.trim() || '🎁',

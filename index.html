@@ -844,9 +844,39 @@
   }
   .modal-foot .btn { width: 100%; justify-content: center; }
 
+  /* ---- style gallery (瀏覽款式) ---- */
+  .sg-options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .sg-option-card {
+    border: 2.5px solid transparent;
+    border-radius: 16px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .sg-option-card:hover { transform: translateY(-2px); }
+  .sg-option-card.selected { border-color: var(--pink-deep); background: var(--pink); }
+  .sg-option-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.7rem;
+    margin-bottom: 6px;
+  }
+  .sg-option-name { font-size: 0.8rem; color: var(--ink); font-family: 'Noto Sans TC'; }
+
   @media (max-width: 500px) {
     .form-row { grid-template-columns: 1fr; }
     .modal-body, .modal-head, .modal-foot { padding-left: 20px; padding-right: 20px; }
+    .sg-options-grid { grid-template-columns: repeat(2, 1fr); }
   }
   .cat-card span.soon {
     display: inline-block;
@@ -1312,6 +1342,31 @@
   </div>
 </div>
 
+<!-- STYLE GALLERY (瀏覽款式) -->
+<div class="modal-overlay" id="styleGalleryOverlay">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-head">
+      <div>
+        <h3 id="sgName"></h3>
+        <p id="sgDesc"></p>
+      </div>
+      <button class="modal-close" id="sgClose" aria-label="關閉">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sg-options-grid" id="sgOptionsGrid"></div>
+    </div>
+    <div class="modal-foot" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <span class="price" id="sgPrice" style="font-size:1.2rem;"></span>
+      <div class="qty-stepper" id="sgQtyStepper" style="margin-left:auto;">
+        <button class="qty-btn qty-minus" aria-label="減少數量">−</button>
+        <span class="qty-num">1</span>
+        <button class="qty-btn qty-plus" aria-label="增加數量">+</button>
+      </div>
+      <button class="btn btn-primary" id="sgAddBtn" style="width:100%;">加入購物車</button>
+    </div>
+  </div>
+</div>
+
 <!-- CART -->
 <button class="cart-fab" id="cartFab" aria-label="購物車">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
@@ -1522,6 +1577,7 @@
   /* ---- 商品：從資料庫讀取並動態渲染 ---- */
   const catGrid = document.getElementById('catGrid');
   const customProductCard = document.getElementById('customProductCard');
+  let productsCache = {};
 
   function renderProducts(list) {
     catGrid.querySelectorAll('[data-product]').forEach(el => el.remove());
@@ -1534,21 +1590,27 @@
 
     const html = list.map(p => {
       const hasOptions = Array.isArray(p.options) && p.options.length > 0;
-      const optionsHtml = hasOptions ? `
-        <div class="form-group" style="margin-bottom:14px;">
-          <select class="item-select">
-            <option value="">請選擇款式</option>
-            ${p.options.map(o => `<option value="${o}">${o}</option>`).join('')}
-          </select>
-        </div>
-      ` : '';
+      const iconHtml = p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (p.icon || '🎁');
+
+      if (hasOptions) {
+        return `
+          <div class="cat-card reveal in" data-product data-key="${p.key}">
+            <div class="cat-icon-wrap" style="font-size:2.1rem; overflow:hidden;">${iconHtml}</div>
+            <h4>${p.name}</h4>
+            <p class="cat-desc">${p.description || ''}</p>
+            <div class="price-row" style="justify-content:center; margin-bottom:14px;">
+              <span class="price">${formatMoney(p.price)}</span>
+            </div>
+            <button class="btn btn-add" data-view-styles="${p.key}">瀏覽款式</button>
+          </div>
+        `;
+      }
 
       return `
         <div class="cat-card reveal in" data-product data-key="${p.key}" data-name="${p.name}" data-price="${p.price}">
-          <div class="cat-icon-wrap" style="font-size:2.1rem; overflow:hidden;">${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (p.icon || '🎁')}</div>
+          <div class="cat-icon-wrap" style="font-size:2.1rem; overflow:hidden;">${iconHtml}</div>
           <h4>${p.name}</h4>
           <p class="cat-desc">${p.description || ''}</p>
-          ${optionsHtml}
           <div class="price-row">
             <span class="price">${formatMoney(p.price)}</span>
             <div class="qty-stepper">
@@ -1567,6 +1629,7 @@
 
   db.ref('products').orderByChild('order').on('value', snapshot => {
     const data = snapshot.val() || {};
+    productsCache = data;
     const list = Object.keys(data)
       .map(key => ({ key, ...data[key] }))
       .filter(p => p.active !== false);
@@ -1577,7 +1640,8 @@
   catGrid.addEventListener('click', (e) => {
     const minusBtn = e.target.closest('.qty-minus');
     const plusBtn = e.target.closest('.qty-plus');
-    const addBtn = e.target.closest('.btn-add');
+    const viewStylesBtn = e.target.closest('[data-view-styles]');
+    const addBtn = e.target.closest('.btn-add:not([data-view-styles])');
 
     if (minusBtn) {
       const qtyNum = minusBtn.closest('.qty-stepper').querySelector('.qty-num');
@@ -1587,6 +1651,10 @@
     if (plusBtn) {
       const qtyNum = plusBtn.closest('.qty-stepper').querySelector('.qty-num');
       qtyNum.textContent = Math.min(99, parseInt(qtyNum.textContent, 10) + 1);
+      return;
+    }
+    if (viewStylesBtn) {
+      openStyleGallery(viewStylesBtn.dataset.viewStyles);
       return;
     }
     if (addBtn) {
@@ -1635,6 +1703,83 @@
     }
     renderCart();
   }
+
+  /* ---- 瀏覽款式（style gallery） ---- */
+  const styleGalleryOverlay = document.getElementById('styleGalleryOverlay');
+  const sgClose = document.getElementById('sgClose');
+  const sgOptionsGrid = document.getElementById('sgOptionsGrid');
+  const sgQtyStepper = document.getElementById('sgQtyStepper');
+  const sgAddBtn = document.getElementById('sgAddBtn');
+
+  let currentGalleryProduct = null;
+  let selectedStyleName = null;
+
+  function openStyleGallery(key) {
+    const raw = productsCache[key];
+    if (!raw) return;
+    currentGalleryProduct = { key, ...raw };
+    selectedStyleName = null;
+
+    document.getElementById('sgName').textContent = currentGalleryProduct.name;
+    document.getElementById('sgDesc').textContent = currentGalleryProduct.description || '';
+    document.getElementById('sgPrice').textContent = formatMoney(currentGalleryProduct.price);
+    sgQtyStepper.querySelector('.qty-num').textContent = '1';
+
+    sgOptionsGrid.innerHTML = (currentGalleryProduct.options || []).map(opt => {
+      const name = typeof opt === 'string' ? opt : opt.name;
+      const image = typeof opt === 'string' ? null : opt.image;
+      const thumbContent = image
+        ? `<img src="${image}" style="width:100%;height:100%;object-fit:cover;">`
+        : (currentGalleryProduct.icon || '🎁');
+      return `
+        <div class="sg-option-card" data-style="${name}">
+          <div class="sg-option-thumb">${thumbContent}</div>
+          <div class="sg-option-name">${name}</div>
+        </div>
+      `;
+    }).join('');
+
+    sgOptionsGrid.querySelectorAll('.sg-option-card').forEach(card => {
+      card.addEventListener('click', () => {
+        sgOptionsGrid.querySelectorAll('.sg-option-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedStyleName = card.dataset.style;
+      });
+    });
+
+    styleGalleryOverlay.classList.add('open');
+  }
+
+  sgClose.addEventListener('click', () => styleGalleryOverlay.classList.remove('open'));
+  styleGalleryOverlay.addEventListener('click', (e) => {
+    if (e.target === styleGalleryOverlay) styleGalleryOverlay.classList.remove('open');
+  });
+
+  sgQtyStepper.querySelector('.qty-minus').addEventListener('click', () => {
+    const qtyNum = sgQtyStepper.querySelector('.qty-num');
+    qtyNum.textContent = Math.max(1, parseInt(qtyNum.textContent, 10) - 1);
+  });
+  sgQtyStepper.querySelector('.qty-plus').addEventListener('click', () => {
+    const qtyNum = sgQtyStepper.querySelector('.qty-num');
+    qtyNum.textContent = Math.min(99, parseInt(qtyNum.textContent, 10) + 1);
+  });
+
+  sgAddBtn.addEventListener('click', () => {
+    if (!selectedStyleName) { showToast('請先選擇款式'); return; }
+    const p = currentGalleryProduct;
+    const qty = parseInt(sgQtyStepper.querySelector('.qty-num').textContent, 10);
+
+    const opt = (p.options || []).find(o => (typeof o === 'string' ? o : o.name) === selectedStyleName);
+    const optImage = opt && typeof opt !== 'string' ? opt.image : null;
+    const icon = optImage || p.image || p.icon || '🎁';
+
+    const fullName = `${p.name}－${selectedStyleName}`;
+    const cartId = `${p.key}__${selectedStyleName}`;
+
+    addToCart(cartId, fullName, p.price, qty, icon);
+    showToast(`已加入「${fullName}」到購物車`);
+    styleGalleryOverlay.classList.remove('open');
+  });
 
   function changeCartQty(id, delta) {
     if (!cart[id]) return;
