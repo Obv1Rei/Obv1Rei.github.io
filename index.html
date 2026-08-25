@@ -463,6 +463,16 @@
     transition: transform 0.2s;
   }
   .chat-fab:hover { transform: translateX(-50%) scale(1.08); }
+  .chat-notify-dot {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #FF4D6D;
+    border: 2.5px solid var(--cream);
+    display: none;
+  }
+  .chat-fab.has-unread .chat-notify-dot { display: block; }
 
   /* ---- member modal ---- */
   .auth-tabs { display: flex; gap: 10px; margin-bottom: 18px; }
@@ -1270,6 +1280,7 @@
     <circle cx="12.5" cy="11" r="1.1" fill="#fff"/>
     <circle cx="16" cy="11" r="1.1" fill="#fff"/>
   </svg>
+  <span class="chat-notify-dot" id="chatNotifyDot"></span>
 </button>
 
 <div class="modal-overlay" id="chatModalOverlay">
@@ -1843,7 +1854,10 @@
   const chatMainSection = document.getElementById('chatMainSection');
   const chatGoLoginBtn = document.getElementById('chatGoLoginBtn');
 
-  chatFab.addEventListener('click', () => chatModalOverlay.classList.add('open'));
+  chatFab.addEventListener('click', () => {
+    chatModalOverlay.classList.add('open');
+    chatFab.classList.remove('has-unread');
+  });
   chatModalClose.addEventListener('click', () => chatModalOverlay.classList.remove('open'));
   chatModalOverlay.addEventListener('click', (e) => { if (e.target === chatModalOverlay) chatModalOverlay.classList.remove('open'); });
   chatGoLoginBtn.addEventListener('click', () => {
@@ -2083,6 +2097,12 @@ Instagram: miniprintshop`;
       }).join('');
 
       chatBox.scrollTop = chatBox.scrollHeight;
+
+      /* 有店家新回覆、且聊天視窗目前沒開著時，顯示通知紅點 */
+      const lastMsg = data[keys[keys.length - 1]];
+      if (lastMsg.sender === 'shop' && !chatModalOverlay.classList.contains('open')) {
+        chatFab.classList.add('has-unread');
+      }
     });
   }
 
