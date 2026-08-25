@@ -1378,9 +1378,14 @@
       </div>
 
       <div class="form-group">
-        <label for="cf-refimg">參考圖片連結（選填）</label>
-        <span class="hint">LINE 相簿、Google 相簿等連結；若沒有連結，送出後也可以直接把圖片附加在信件裡</span>
-        <input type="text" id="cf-refimg" placeholder="貼上圖片連結，或留空">
+        <label for="cf-refimg-file">參考圖片（選填）</label>
+        <span class="hint">直接上傳照片就可以，系統會自動壓縮處理</span>
+        <input type="file" id="cf-refimg-file" accept="image/*">
+        <div id="cfRefImgPreviewWrap" style="display:none; align-items:center; gap:12px; margin-top:10px;">
+          <img id="cfRefImgPreview" src="" style="width:64px;height:64px;border-radius:14px;object-fit:cover;box-shadow:0 4px 12px rgba(180,150,200,0.2);">
+          <button type="button" class="btn btn-outline btn-sm" id="cfRefImgRemoveBtn">移除照片</button>
+        </div>
+        <input type="hidden" id="cf-refimg-data">
       </div>
 
       <div class="form-row">
@@ -2119,6 +2124,66 @@
   const cfSendBtn = document.getElementById('cfSendBtn');
   const cfCopyBtn = document.getElementById('cfCopyBtn');
 
+  const cfRefImgFile = document.getElementById('cf-refimg-file');
+  const cfRefImgData = document.getElementById('cf-refimg-data');
+  const cfRefImgPreviewWrap = document.getElementById('cfRefImgPreviewWrap');
+  const cfRefImgPreview = document.getElementById('cfRefImgPreview');
+  const cfRefImgRemoveBtn = document.getElementById('cfRefImgRemoveBtn');
+
+  /* 把選好的照片壓縮成適合傳送的小尺寸 base64 圖片 */
+  function compressImageFile(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showRefImgPreview(dataUrl) {
+    cfRefImgData.value = dataUrl || '';
+    if (dataUrl) {
+      cfRefImgPreview.src = dataUrl;
+      cfRefImgPreviewWrap.style.display = 'flex';
+    } else {
+      cfRefImgPreview.src = '';
+      cfRefImgPreviewWrap.style.display = 'none';
+    }
+  }
+
+  cfRefImgFile.addEventListener('change', async () => {
+    const file = cfRefImgFile.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 480, 0.72);
+      showRefImgPreview(dataUrl);
+    } catch (err) {
+      showToast('照片處理失敗，請換一張再試試看');
+    }
+    cfRefImgFile.value = '';
+  });
+
+  cfRefImgRemoveBtn.addEventListener('click', () => showRefImgPreview(''));
+
   function openCustomModal() {
     customOverlay.classList.add('open');
   }
@@ -2155,7 +2220,7 @@
     lines.push(`Email：${getVal('cf-email') || '（未填寫）'}`);
     lines.push('');
     lines.push(`想印的東西：${getVal('cf-desc') || '（未填寫）'}`);
-    if (getVal('cf-refimg')) lines.push(`參考圖片連結：${getVal('cf-refimg')}`);
+    if (cfRefImgData.value) lines.push('（已附上參考照片，僅在按「送出需求」時會一起送出，複製文字不含照片）');
     lines.push('');
     lines.push(`尺寸大小：${getVal('cf-size') || '未選擇'}`);
     lines.push(`顏色需求：${getVal('cf-color') || '（未填寫）'}`);
@@ -2164,7 +2229,6 @@
     if (getVal('cf-deadline')) lines.push(`希望完成時間：${getVal('cf-deadline')}`);
     if (getVal('cf-budget')) lines.push(`預算範圍：${getVal('cf-budget')}`);
     if (getVal('cf-note')) lines.push(`備註：${getVal('cf-note')}`);
-    lines.push('', '（若有參考圖片檔案，記得在這封信裡手動附加喔！）');
     return lines.join('\n');
   }
 
@@ -2176,7 +2240,7 @@
       contact: getVal('cf-contact'),
       email: getVal('cf-email'),
       description: getVal('cf-desc'),
-      refImage: getVal('cf-refimg'),
+      refImage: cfRefImgData.value || null,
       size: getVal('cf-size'),
       color: getVal('cf-color'),
       base: getVal('cf-base'),
@@ -2194,9 +2258,10 @@
     db.ref('customInquiries').push(inquiryData)
       .then(() => {
         showToast('需求已送出，我們會盡快回覆報價！');
-        ['cf-name','cf-contact','cf-email','cf-desc','cf-refimg','cf-color','cf-deadline','cf-budget','cf-note'].forEach(id => {
+        ['cf-name','cf-contact','cf-email','cf-desc','cf-color','cf-deadline','cf-budget','cf-note'].forEach(id => {
           document.getElementById(id).value = '';
         });
+        showRefImgPreview('');
         document.getElementById('cf-size').selectedIndex = 0;
         document.getElementById('cf-base').selectedIndex = 0;
         document.getElementById('cf-purpose').selectedIndex = 0;

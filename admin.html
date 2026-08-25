@@ -660,7 +660,9 @@
             </div>
             <div class="inquiry-desc">${q.description || ''}</div>
             <div class="order-extra">
-              ${q.refImage ? `<div><b>參考圖片：</b><a href="${q.refImage}" target="_blank" rel="noopener">${q.refImage}</a></div>` : ''}
+              ${q.refImage ? (q.refImage.startsWith('data:image')
+                ? `<div style="margin:8px 0;"><b>參考圖片：</b><br><img src="${q.refImage}" style="max-width:180px;border-radius:12px;margin-top:6px;box-shadow:0 4px 12px rgba(180,150,200,0.2);cursor:pointer;" onclick="window.open(this.src)"></div>`
+                : `<div><b>參考圖片：</b><a href="${q.refImage}" target="_blank" rel="noopener">${q.refImage}</a></div>`) : ''}
               <div><b>尺寸：</b>${q.size || '未選擇'}　<b>顏色：</b>${q.color || '未填寫'}</div>
               <div><b>底座／刻字：</b>${q.base || ''}　<b>用途：</b>${q.purpose || ''}</div>
               ${q.deadline ? `<div><b>希望完成時間：</b>${q.deadline}</div>` : ''}
